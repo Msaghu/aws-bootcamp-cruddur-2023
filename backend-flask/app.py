@@ -4,7 +4,6 @@ from flask_cors import CORS, cross_origin
 import os
 import sys
 
-#from services.user_short import *
 from services.home_activities import *
 from services.notifications_activities import *
 from services.user_activities import *
@@ -37,6 +36,7 @@ import logging
 
 # Rollbar ------
 from time import strftime
+import os
 import rollbar
 import rollbar.contrib.flask
 from flask import got_request_exception
@@ -77,7 +77,7 @@ cognito_jwt_token = CognitoJwtToken(
 )
 
 # X-RAY middleware
-XRayMiddleware(app, xray_recorder)
+#XRayMiddleware(app, xray_recorder)
 
 # HoneyComb ---------
 # Initialize automatic instrumentation with Flask
@@ -105,8 +105,9 @@ cors = CORS(
 
 #Rollbar -initialization by setting env var
 rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
-@app.before_first_request
-def init_rollbar():
+#@app.before_first_request
+with app.app_context():
+  def init_rollbar():
     """init rollbar module"""
     rollbar.init(
         # access token
@@ -114,12 +115,13 @@ def init_rollbar():
         # environment name
         'production',
         # server root directory, makes tracebacks prettier
-        root=os.path.dirname(os.path.realpath(__file__)),
-        # flask already sets up logging
-        allow_logging_basic_config=False)
 
-    # send exceptions from `app` to rollbar, using flask's signal system.
-    got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+root=os.path.dirname(os.path.realpath(__file__)),
+# flask already sets up logging
+allow_logging_basic_config=False)
+
+# send exceptions from `app` to rollbar, using flask's signal system.
+got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
 @app.route('/rollbar/test')
 def rollbar_test():
@@ -146,31 +148,67 @@ def data_message_groups():
     app.logger.debug(e)
     return {}, 401
   
-@app.route("/api/messages/@<string:handle>", methods=['GET'])
-def data_messages(handle):
-  user_sender_handle = 'andrewbrown'
-  user_receiver_handle = request.args.get('user_reciever_handle')
+@app.route("/api/messages/<string:message_group_uuid>", methods=['GET'])
+def data_messages(message_group_uuid):
+  access_token = extract_access_token(request.headers)
+  try:
+    claims = cognito_jwt_token.verify(access_token)
+    #authenticated request
+    app.logger.debug('authenicated')
+    app.logger.debug(claims)
+    cognito_user_id = claims['sub']
+    model = Messages.run(
+      cognito_user_id=cognito_user_id,
+      message_group_uuid=message_group_uuid)
 
-  model = Messages.run(user_sender_handle=user_sender_handle, user_receiver_handle=user_receiver_handle)
-  if model['errors'] is not None:
-    return model['errors'], 422
-  else:
-    return model['data'], 200
-  return
+    if model['errors'] is not None:
+      return model['errors'], 422
+    else:
+      return model['data'], 200
+  except TokenVerifyError as e:
+    #unauthenticated requests  
+    app.logger.debug(e)
+    return {}, 401
 
 @app.route("/api/messages", methods=['POST','OPTIONS'])
 @cross_origin()
 def data_create_message():
-  user_sender_handle = 'maureenmsaghu'
-  user_receiver_handle = request.json['user_receiver_handle']
+  message_group_uuid   = request.json.get('message_group_uuid',None)
+  user_receiver_handle = request.json.get('handle',None)
   message = request.json['message']
+  access_token = extract_access_token(request.headers)
+  try:
+    claims = cognito_jwt_token.verify(access_token)
+    #authenticated request
+    app.logger.debug('authenicated')
+    app.logger.debug(claims)
+    cognito_user_id = claims['sub']
 
-  model = CreateMessage.run(message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
-  if model['errors'] is not None:
-    return model['errors'], 422
-  else:
-    return model['data'], 200
-  return
+    if message_group_uuid == None:
+      # Create for the first time
+      model = CreateMessage.run(
+        mode="create",
+        message=message,
+        cognito_user_id=cognito_user_id,
+        user_receiver_handle=user_receiver_handle
+      )
+    else:
+      # Push onto existing Message Group
+      model = CreateMessage.run(
+        mode="update",
+        message=message,
+        message_group_uuid=message_group_uuid,
+        cognito_user_id=cognito_user_id
+      )
+    if model['errors'] is not None:
+      return model['errors'], 422
+    else:
+      return model['data'], 200
+  except TokenVerifyError as e:
+    #unauthenticated requests  
+    app.logger.debug(e)
+    return {}, 401
+
 
 @app.route("/api/activities/home", methods=['GET'])
 #@xray_recorder.capture('activities_home')

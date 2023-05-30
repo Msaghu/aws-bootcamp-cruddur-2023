@@ -46,6 +46,7 @@ query_params = {
   'ScanIndexForward': False,
   'ExpressionAttributeValues': {
     ':year': {'S': year},
+#    ':year': {'S': str(current_year) },
     ':pk': {'S': f"GRP#{my_user_uuid}"}
   },
   'ReturnConsumedCapacity': 'TOTAL'
