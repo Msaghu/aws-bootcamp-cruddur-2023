@@ -903,7 +903,7 @@ AWS recommends using Client side encryption when storing sensitive information. 
 - Site-to-Site VPN or Direct Connect for Onpremise and DynamoDB Access.
 - Client side encryption is recommended by Amazon for DynamoDB.
 
-## Errors I have encounterered so far and how i resolved them#
+## Errors I have encountered so far and how i resolved them#
 1. While running ./bin/cognito/list-users 
 ```Traceback (most recent call last):
   File "/workspace/aws-bootcamp-cruddur-2023/backend-flask/./bin/cognito/list-users", line 26, in <module>
@@ -930,12 +930,10 @@ DETAIL:  There are 4 other sessions using the database.
 
 From the discord channel, a tip dropped there suggested using this command
 ```
-REVOKE CONNECT ON DATABASE cr
-uddur FROM public;
+REVOKE CONNECT ON DATABASE cruddur FROM public;
 ALTER DATABASE cruddur allow_connections = off;
 SELECT pg_terminate_backend(pg_stat_activity.pid
-) FROM pg_stat_activity WHERE pg_stat_activity.d
-atname = 'cruddur';
+) FROM pg_stat_activity WHERE pg_stat_activity.datname = 'cruddur'; DROP DATABASE cruddur;
 ```
 I connected to the database by:
 ```./bin/db/connect```
