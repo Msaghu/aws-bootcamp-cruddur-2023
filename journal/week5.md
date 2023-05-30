@@ -1,4 +1,4 @@
-cd ..cd # Week 5 — DynamoDB and Serverless Caching
+# Week 5 — DynamoDB and Serverless Caching
 Hi guys! Welcome back to week 5!! It getting hotter in the kitchen but lets learn about a few definitions today.
 This week will be learning about NoSQl Databases and the different types that exist.
 - Then we will learn about NoSQL database in AWS which is DynamoDB. So lets start!!
@@ -902,6 +902,46 @@ AWS recommends using Client side encryption when storing sensitive information. 
 - Not have DynamoDB be accessed from the internet(use VPC endpoints instead).
 - Site-to-Site VPN or Direct Connect for Onpremise and DynamoDB Access.
 - Client side encryption is recommended by Amazon for DynamoDB.
+
+## Errors I have encounterered so far and how i resolved them#
+1. While running ./bin/cognito/list-users 
+```Traceback (most recent call last):
+  File "/workspace/aws-bootcamp-cruddur-2023/backend-flask/./bin/cognito/list-users", line 26, in <module>
+    dict_users[handle['Value']] = sub['Value']
+               ~~~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+```
+
+2. While running ./bin/db/update_cognito_user_ids 
+```Traceback (most recent call last):
+  File "/workspace/aws-bootcamp-cruddur-2023/backend-flask/./bin/cognito/list-users", line 26, in <module>
+    dict_users[handle['Value']] = sub['Value']
+               ~~~~~~^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+```
+
+SOLUTION
+3. While trying to connect to my postgres database, the records/users had been added twice from my cognito user pool id and when i tried dropping the Cruudur postgres datase database I woul encounter this error
+```
+== db-drop
+ERROR:  database "cruddur" is being accessed by other users
+DETAIL:  There are 4 other sessions using the database.
+```
+
+From the discord channel, a tip dropped there suggested using this command
+```
+REVOKE CONNECT ON DATABASE cr
+uddur FROM public;
+ALTER DATABASE cruddur allow_connections = off;
+SELECT pg_terminate_backend(pg_stat_activity.pid
+) FROM pg_stat_activity WHERE pg_stat_activity.d
+atname = 'cruddur';
+```
+I connected to the database by:
+```./bin/db/connect```
+then once in the cruddur database, run the command above.
+When i tried running ```./bin/db/drop``` once again it worked.
+Thus i ran, ```./bin/db/setup```, then ./bin/cognito/list-users
 
 
 
