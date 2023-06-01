@@ -62,9 +62,6 @@ services:
     container_name: dynamodb-local
     ports:
       - "8000:8000"
-      
-    networks:
-      - cruddur-net    
     volumes:
       - "./docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal

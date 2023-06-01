@@ -52,12 +52,12 @@ export default function ActivityForm(props) {
     }
   }
 
-    const textarea_onchange = (event) => {
-      setCount(event.target.value.length);
-      setMessage(event.target.value);
-    }
+  const textarea_onchange = (event) => {
+    setCount(event.target.value.length);
+    setMessage(event.target.value);
+  }
 
-    return (
+  return (
     <form 
       className='message_form'
       onSubmit={onsubmit}
