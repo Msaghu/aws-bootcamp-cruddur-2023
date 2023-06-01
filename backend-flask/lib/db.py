@@ -36,6 +36,13 @@ class Db:
 
 #when we want to commit code ie inserts
 #check for returning in uppercase
+  def print_params(self,params):
+    blue = '\033[94m'
+    no_color = '\033[0m'
+    print(f'{blue} SQL Params:{no_color}')
+    for key, value in params.items():
+      print(key, ":", value)
+
   def print_sql(self, title, sql, params={}):
     cyan = '\033[90m'
     no_color = '\033[0m'
@@ -112,8 +119,7 @@ class Db:
     """
     return sql
 
-    # define a function that handles and parses psycopg2 exceptions
-  def print_psycopg_exception(self, err):
+  def print_sql_err(self,err):
     # get details about the exception
     err_type, err_obj, traceback = sys.exc_info()
 
@@ -123,9 +129,6 @@ class Db:
     # print the connect() error
     print ("\npsycopg ERROR:", err, "on line number:", line_num)
     print ("psycopg traceback:", traceback, "-- type:", err_type)
-
-    # psycopg2 extensions.Diagnostics object attribute
-    #print ("\nextensions.Diagnostics:", err.diag)
 
     # print the pgcode and pgerror exceptions
     print ("pgerror:", err.pgerror)
