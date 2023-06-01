@@ -15,7 +15,6 @@ class CreateMessage:
       if message_group_uuid == None or len(message_group_uuid) < 1:
         model['errors'] = ['message_group_uuid_blank']
 
-
     if cognito_user_id == None or len(cognito_user_id) < 1:
       model['errors'] = ['cognito_user_id_blank']
 
@@ -68,15 +67,16 @@ class CreateMessage:
           my_user_display_name=my_user['display_name'],
           my_user_handle=my_user['handle']
         )
-      #elif (mode == "create"):
-      #  data = Ddb.create_message_group(
-      #    client=ddb,
-      #    my_user_uuid=my_user['uuid'],
-      #    my_user_display_name=my_user['display_name'],
-      #    my_user_handle=my_user['handle'],
-      #    other_user_uuid=other_user['uuid'],
-      #    other_user_display_name=other_user['display_name'],
-      #    other_user_handle=other_user['handle']
-      #  )
+      elif (mode == "create"):
+        data = Ddb.create_message_group(
+          client=ddb,
+          message=message,
+          my_user_uuid=my_user['uuid'],
+          my_user_display_name=my_user['display_name'],
+          my_user_handle=my_user['handle'],
+          other_user_uuid=other_user['uuid'],
+          other_user_display_name=other_user['display_name'],
+          other_user_handle=other_user['handle']
+        )
       model['data'] = data
     return model
