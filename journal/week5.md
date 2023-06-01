@@ -903,8 +903,8 @@ AWS recommends using Client side encryption when storing sensitive information. 
 - Site-to-Site VPN or Direct Connect for Onpremise and DynamoDB Access.
 - Client side encryption is recommended by Amazon for DynamoDB.
 
-## Errors I have encountered so far and how i resolved them#
-1. While running ./bin/cognito/list-users 
+# Errors I have encountered so far and how i resolved them #
+## 1. While running ./bin/cognito/list-users ## 
 ```Traceback (most recent call last):
   File "/workspace/aws-bootcamp-cruddur-2023/backend-flask/./bin/cognito/list-users", line 26, in <module>
     dict_users[handle['Value']] = sub['Value']
@@ -941,7 +941,21 @@ then once in the cruddur database, run the command above.
 When i tried running ```./bin/db/drop``` once again it worked.
 Thus i ran, ```./bin/db/setup```, then ./bin/cognito/list-users
 
-
+## 2. Getting -ve time values on our messages ##
+While the messages would show in our application, they would show negative times thus meaning when we posted new messages they wouldn't be displayed on our timeline.
+A helpful bootcamper suggested editing this line in ```backend-flask/bin/ddb/seed```
+```
+change this line 
+  created_at = (now + timedelta(minutes=i)).isoformat()
+to
+  created_at = (now + timedelta(hours=-3) + timedelta(minutes=i)).isoformat()
+```
+- Then drop the database and recreate it then seed it using these steps:
+```
+./bin/ddb/drop cruddur-messages 
+./bin/ddb/load-schema 
+./bin/ddb/seed
+```
 
 ## Next Steps - Additional Homework Challenges
 
