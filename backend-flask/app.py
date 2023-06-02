@@ -116,13 +116,12 @@ with app.app_context():
         # environment name
         'production',
         # server root directory, makes tracebacks prettier
+        root=os.path.dirname(os.path.realpath(__file__)),
+        # flask already sets up logging
+        allow_logging_basic_config=False)
 
-root=os.path.dirname(os.path.realpath(__file__)),
-# flask already sets up logging
-allow_logging_basic_config=False)
-
-# send exceptions from `app` to rollbar, using flask's signal system.
-got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+    # send exceptions from `app` to rollbar, using flask's signal system.
+    got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
 @app.route('/rollbar/test')
 def rollbar_test():
@@ -174,7 +173,7 @@ def data_messages(message_group_uuid):
 @app.route("/api/messages", methods=['POST','OPTIONS'])
 @cross_origin()
 def data_create_message():
-  message_group_uuid   = request.json.get('message_group_uuid',None)
+  message_group_uuid = request.json.get('message_group_uuid',None)
   user_receiver_handle = request.json.get('handle',None)
   message = request.json['message']
   access_token = extract_access_token(request.headers)
