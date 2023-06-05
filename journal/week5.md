@@ -272,9 +272,9 @@ chmod u+x bin/ddb/patterns/list-conversations
 ./bin/ddb/patterns/list-conversations
 ```
 
-### Update our backend app to use the production DynamoDB
-**Step 12 - jjkk**
-- Paste the following code in lib/db.py
+### Update our backend app to use the production DynamoDB and to implement the conversations
+**Step 12 - Creating **
+- Paste the following code in create ```backend-flask/lib/ddb.py```
 ```
 # when we want to return a a single value
   def query_value(self,sql,params={}):
@@ -296,63 +296,14 @@ command: |
   pip install -r requirements.txt
 ```
 
-- In the bin/ddb/seed file, add/replace the last line with:
+- In the ```bin/ddb/seed file```, add/replace the last line with:
 ```psql $NO_DB_CONNECTION_URL -c "drop database IF EXISTS cruddur;"```
 
 - In the terminal, run ```pip install -r requirements.txt``` then run Docker compose up in the terminal.
 - Open our front-end application in a new tab and try to sign in.
 - Switch to the messages tab.
-- Create a DynamoDB object by creating a ddb.py file in the backend-flask/lib folder.
-```
-import boto3
-import sys
-from datetime import datetime, timedelta, timezone
-import uuid
-import os
-
-class Ddb:
-  def client():
-    endpoint_url = os.getenv("AWS_ENDPOINT_URL")
-    if endpoint_url:
-      attrs = { 'endpoint_url': endpoint_url }
-    else:
-      attrs = {}
-    dynamodb = boto3.client('dynamodb',**attrs)
-    return dynamodb
-
- def list_message_groups(client,my_user_uuid):
-    table_name = 'cruddur-messages'
-    query_params = {
-      'TableName': table_name,
-      'KeyConditionExpression': 'pk = :pk',
-      'ScanIndexForward': False,
-      'Limit': 20,
-      'ExpressionAttributeValues': {
-        ':pk': {'S': f"GRP#{my_user_uuid}"}
-      }
-    }
-    print('query-params')
-    print(query_params)
-    print('client')
-    print(client)
-
-    # query the table
-    response = client.query(**query_params)
-    items = response['Items']
-    
-    results = []
-    for item in items:
-      last_sent_at = item['sk']['S']
-      results.append({
-        'uuid': item['message_group_uuid']['S'],
-        'display_name': item['user_display_name']['S'],
-        'handle': item['user_handle']['S'],
-        'message': item['message']['S'],
-        'created_at': last_sent_at
-      })
-    return results
-```
-
+- Create a DynamoDB object by creating a ddb.py file in the backend-flask/lib folder, as [backend-flask/lib/ddb.py](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/lib/ddb.py) . 
+- 
 - In the list-conversation file, paste in  ```'ScanIndexForward': False,```:
 - Change into the ```backend-flask directory``` and in the terminal paste in line 2:
 ```
@@ -371,114 +322,26 @@ env | grep AWS_COGNITO
 AWS_COGNITO_USER_POOL_ID: "${AWS_COGNITO_USER_POOL_ID}"
 ```
 
-- In the bin directory, create a new folder called cognito that will contain a file named list-users that will list users.
-```
-#!/usr/bin/env python3
+**Step 13 - Updating user authentication in our frontend **
+- We will create a new file in the frontend-react-js callled CheckAuth.js which we will import in other files that will allow us to authentoicate our users.
+- The file [frontend-react-js/src/lib/CheckAuth.js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/src/lib/CheckAuth.js) will be added to:
+1. [frontend-react-js/src/pages/MessageGroupsPage.js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/src/pages/MessageGroupsPage.js)
+2. [frontend-react-js/src/components/MessageForm.js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/src/components/MessageForm.js)
+3. [frontend-react-js/src/pages/HomeFeedPage.js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/src/pages/HomeFeedPage.js)
+4. [frontend-react-js/src/pages/MessageGroupPage.js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/src/pages/MessageGroupPage.js)
+5. 
 
-import boto3
-import os
-import json
+**Step 14 - Create message **
+- Since we can now authenticate users, we can now implement sending messages. As we had earlier dicussed in the Data modelling video, our messages are created in/with DynamoDB thus we will be utilizing the ```ddb.py``` file we created above.
 
-userpool_id = os.getenv("AWS_COGNITO_USER_POOL_ID")
-client = boto3.client('cognito-idp')
-params = {
-  'UserPoolId': userpool_id,
-  'AttributesToGet': [
-      'preferred_username',
-      'sub'
-  ]
-}
-response = client.list_users(**params)
-users = response['Users']
-
-print(json.dumps(users, sort_keys=True, indent=2, default=str))
-
-dict_users = {}
-for user in users:
-  attrs = user['Attributes']
-  sub    = next((a for a in attrs if a["Name"] == 'sub'), None)
-  handle = next((a for a in attrs if a["Name"] == 'preferred_username'), None)
-  dict_users[handle['Value']] = sub['Value']
-
-print(json.dumps(dict_users, sort_keys=True, indent=2, default=str))
-
-```
-
-- Change the permissions of the list-users file by running in the terminal:
-```
-chmod u+x bin/cognito/list-users
-.bin/cognito/list-users
-```
-
-**Step 9 - jjkk**
-- We now need to create a script to update the user ids into our database.
-- In the db directory, create a new bash update-cognito-user id script 
-```
-#!/usr/bin/env python3
-
-import boto3
-import os
-import sys
-
-current_path = os.path.dirname(os.path.abspath(__file__))
-parent_path = os.path.abspath(os.path.join(current_path, '..', '..'))
-sys.path.append(parent_path)
-from lib.db import db
-
-def update_users_with_cognito_user_id(handle,sub):
-  sql = """
-    UPDATE public.users
-    SET cognito_user_id = %(sub)s
-    WHERE
-      users.handle = %(handle)s;
-  """
-  db.query_commit(sql,{
-    'handle' : handle,
-    'sub' : sub
-  })
-
-def get_cognito_user_ids():
-  userpool_id = os.getenv("AWS_COGNITO_USER_POOL_ID")
-  client = boto3.client('cognito-idp')
-  params = {
-    'UserPoolId': userpool_id,
-    'AttributesToGet': [
-        'preferred_username',
-        'sub'
-    ]
-  }
-  response = client.list_users(**params)
-  users = response['Users']
-  dict_users = {}
-  for user in users:
-    attrs = user['Attributes']
-    sub    = next((a for a in attrs if a["Name"] == 'sub'), None)
-    handle = next((a for a in attrs if a["Name"] == 'preferred_username'), None)
-    dict_users[handle['Value']] = sub['Value']
-  return dict_users
-
-
-users = get_cognito_user_ids()
-
-for handle, sub in users.items():
-  print('----',handle,sub)
-  update_users_with_cognito_user_id(
-    handle=handle,
-    sub=sub
-  )
-```
-
-- In the db/setup file, we will add a new line
-``` source "$bin_path/db/update_cognito_user_ids" ```
-
-- Before seeding our data , we need to make sure that Docker-compose is up and running then we will run
-```
-chmod u+x bin/db/update_cognito_user_ids
-./bin/db/setup
-```
-
-- Update a line into d.py file
--  
+### Implementing DynamoDB Stream with AWS Lambda
+**Step 15 - Creating our DynamoDB table in production**
+- To ensure that our table is now created in AWS, we will now comment  out ```AWS_ENDPOINT_URL``` in docker-compose.yml, then run compose up and run ./bin/db/setup to restart our Postgres table. 
+- In  ```./bin/ddb/schema-load``` we will add in a Global Secondary Index (GSI) and then we will run our DynamoDB in production so that we can also create in AWS. Run ```./bin/ddb/schema-load prod```.
+- Go to our AWS console then in DynamoDB > Tables > cruddur-messages > Turn on DynamoDB stream, choose "new image"
+- On AWS in the VPC console, create an endpoint named cruddur-ddb, choose services with DynamoDB, and select the default VPC and route table
+- We can now create a function, therefore in AWS Lambda console, create a new function named ```cruddur-messaging-stream``` and enable VPC in its advanced settings; then paste in the code [aws/lambdas/cruddur-messaging-stream.py](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/lambdas/cruddur_messaging_stream.py) and deploy the code as a function.
+- We can now add an IAM role and attach a permission of ```AWSLambdaInvocation-DynamoDB``` 
 
 
 ### Security best practises for DynamoDB
