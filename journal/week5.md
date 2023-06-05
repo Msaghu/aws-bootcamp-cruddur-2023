@@ -103,12 +103,36 @@ message = {
 boto3
 pip install -r requirements.txt
 ```
-
+- Boto3 is the AWS SDK for Python that allows us to use Python in AWS tp create, configure and manage AWS.
 - Run ```Docker-compose up``` to start up Dynamo-db local.
 - We will now create new folders in backend-flask to store the utility scripts: 
 - In the existing ```backend-flask/bin``` directory, create a new folder named ```/db``` and move all the scripts for the Postgres database only
 - In the existing ```backend-flask/bin``` directory, create a new folder named ```/rds``` and move the remaining rds script file for the AWS RDS Postgres database update-cognito-ids scripts .
-- ```backend-flask/bin/ddb ``` for the DynamoDB database only,
+- n the existing ```backend-flask/bin``` directory, create a new folder named ```backend-flask/bin/ddb ``` for the DynamoDB database only,
+
+### Bash script changes for the Postgres database
+**Step 3 -  Creating a new user in the Seed h Script**
+- Added a new user in the ```backend-flask/db/seed``` , make usre that the vaulues reflect you as one of the users, andrew as a test and the new user Londo
+```
+-- this file was manually created
+INSERT INTO public.users (display_name, email, handle, cognito_user_id)
+VALUES
+  ('Maureen Msaghu', 'maureenmwagoti@gmail.com', 'maureenmsaghu' ,'MOCK'),
+  ('Andrew Bayko', 'maureenmwagoti+1@gmail.com', 'bayko' ,'MOCK'),
+  ('Londo Mollari','lmollari@centari.com' ,'londo' ,'MOCK');
+INSERT INTO public.activities (user_uuid, message, expires_at)
+VALUES
+  (
+    (SELECT uuid from public.users WHERE users.handle = 'maureenmsaghu' LIMIT 1),
+    'This was imported as seed data!',
+    current_timestamp + interval '10 day'
+  )
+```
+
+**Step 4-  List existing users in Cognito**
+- In week 4 we created users in AWS Cognito, we will now be using the same users in our application, however we need to make sure they exist, therefore the following script will show the created users from AWS Cognito.
+- We will create a new file in cognito , ```backend-flask/bin/cognito/list-users``` :
+- [backend-flask/bin/cognito/list-users](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/cognito/list-users)
 
 ### Seed our DynamoDB tables with data using Faker
 **Step 3 -  Creating Schema-load Bash Script**
