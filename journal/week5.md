@@ -247,152 +247,33 @@ chmod u+x bin/ddb/drop-tables
 -  If yopu decide to use this code, please make sure to change the appropriate values to your own i.e name.
 
 **Step 10 -  Creating Scan Script**
-- In the ddb folder, create a new file named ``scan`` to make sure that sato our table(s), [backend-flask/bin/ddb/seed]
+- In the ddb folder, create a new file named ``scan`` to make sure that seeding our  DynamoDB table(s) actually happened , [backend-flask/bin/ddb/scan](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ddb/scan)
 
-**Step 7 - Creating a patterns folder in ddb**
+**Step 11 - Creating a patterns folder in ddb**
 -  In the ddb folder, create a new folder named ```patterns```.
--  In the ddb/patterns folder, create a new file named ```get-conversations```.
+-  In the ddb/patterns folder, create a new file named ```get-conversations```. The script [backend-flask/bin/ddb/patterns/get-conversations](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ddb/patterns/get-conversations) will query the table and then will get our conversations that we had with the uuid, ```message_group_uuid = "5ae290ed-55d1-47a0-bc6d-fe2bc2700399"``` for a particular time period and will then print the consumed capacity.
 -  In the ddb/patterns folder, create a new file named ```list-conversations```.
--  In the ddb/patterns/get-conversations file, paste in :
-```
-#!/usr/bin/env python3
-
-import boto3
-import sys
-import json
-import datetime
-
-attrs = {
-  'endpoint_url': 'http://localhost:8000'
-}
-
-if len(sys.argv) == 2:
-  if "prod" in sys.argv[1]:
-    attrs = {}
-
-dynamodb = boto3.client('dynamodb',**attrs)
-table_name = 'cruddur-messages'
-
-message_group_uuid = "5ae290ed-55d1-47a0-bc6d-fe2bc2700399"
-
-# define the query parameters
-query_params = {
-  'TableName': table_name,
-  'ScanIndexForward': True,
-  'Limit': 20,
-  'KeyConditionExpression': 'pk = :pk AND begins_with(sk,:year)',
-  #'KeyConditionExpression': 'pk = :pk AND sk BETWEEN :start_date AND :end_date',  
-  'ExpressionAttributeValues': {
-    ':year': {'S': '2023'},
-    #':start_date': { "S": "2023-03-01T00:00:00.000000+00:00"},
-    #':end_date': { "S": "2023-03-19T23:59:59.999999+00:00"},  
-    ':pkey': {'S': f"MSG#{message_group_uuid}"}
-  },
-  'ReturnConsumedCapacity': 'TOTAL'
-}
-
-# query the table
-response = dynamodb.query(**query_params)
-
-# print the items returned by the query
-print(json.dumps(response, sort_keys=True, indent=2))
-
-# print the consumed capacity
-print(json.dumps(response['ConsumedCapacity'], sort_keys=True, indent=2))
-
-items = response['Items']
-reversed_array = items[::-1]
-
-for item in reversed_array:
-  sender_handle = item['user_handle']['S']
-  message       = item['message']['S']
-  timestamp     = item['sk']['S']
-  dt_object = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z')
-  formatted_datetime = dt_object.strftime('%Y-%m-%d %I:%M %p')
-  print(f'{sender_handle: <16}{formatted_datetime: <22}{message[:40]}...')
-```
-
+The script [backend-flask/bin/ddb/patterns/list-conversations](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ddb/patterns/list-conversations). This will list all the conversations that a user with a particular user uuid has had by querying the table and print the items returned by the query.
 - Change the permissions of the scan bash script file by running, in the terminal:
 ```
 chmod u+x bin/ddb/patterns/get-conversations
 ./bin/ddb/patterns/get-conversations
 ```
 
-- In the ddb/patterns/list-conversations file, paste in :
-```
-#!/usr/bin/env python3
-
-import boto3
-import sys
-import json
-import os
-
-current_path = os.path.dirname(os.path.abspath(__file__))
-parent_path = os.path.abspath(os.path.join(current_path, '..', '..', '..'))
-sys.path.append(parent_path)
-from lib.db import db
-
-attrs = {
-  'endpoint_url': 'http://localhost:8000'
-}
-
-if len(sys.argv) == 2:
-  if "prod" in sys.argv[1]:
-    attrs = {}
-
-dynamodb = boto3.client('dynamodb',**attrs)
-table_name = 'cruddur-messages'
-
-def get_my_user_uuid():
-  sql = """
-    SELECT 
-      users.uuid,
-    FROM users
-    WHERE
-      users.handle=%(my_handle)s,
-  """
-
-uuid = db.query_value(sql,{
-   'handle':  'andrewbrown',
- })
-return uuid 
- 
-my_user_uuid = get_my_user_uuid()
-print(f"my-uuid: {my_user_id}")
-
-# define the query parameters
-query_params = {
-  'TableName': table_name,
-  'KeyConditionExpression': 'pk = :pk',
-  #'ScanIndexForward': False,
-  'ExpressionAttributeValues': {
-    ':pk': {'S': f"GRP#{brown_user_uuid}"}
-  },
-  'ReturnConsumedCapacity': 'TOTAL'
-}
-
-# query the table
-response = dynamodb.query(**query_params)
-
-# print the items returned by the query
-print(json.dumps(response, sort_keys=True, indent=2))
-```
-
 - To get the value of 
-"my_user_uuid = "1506fa16-d775-4808-9f46-456661029af2", in the terminal, make sure that we are in backend-flask folder and run , then in the cruddur prompt, run line 2:
+"my_user_uuid = "1506fa16-d775-4808-9f46-456661029af2", in the terminal, make sure that we are in backend-flask folder and run ```./bin/db-connect``` , then in the cruddur prompt, run :
 ```
-./bin/db-connect
 SELECT uuid, handle from users;
 ```
 ***(this value will always have to be updated whenever we seed the database because the uuid is ever-changing and the )***
-
-- Then copy the uuid of andrew brown and paste into the line as above.
 - Change the permissions of the scan bash script file by running, in the terminal:
 ```
 chmod u+x bin/ddb/patterns/list-conversations
 ./bin/ddb/patterns/list-conversations
 ```
 
+### Update our backend app to use the production DynamoDB
+**Step 12 - jjkk**
 - Paste the following code in lib/db.py
 ```
 # when we want to return a a single value
@@ -407,8 +288,6 @@ chmod u+x bin/ddb/patterns/list-conversations
 
 ```
 
-### Update our backend app to use the production DynamoDB
-**Step 8 - jjkk**
 - In gitpod.yml add in:
 ```
 name: flask
