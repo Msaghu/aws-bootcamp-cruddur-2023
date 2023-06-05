@@ -1,7 +1,7 @@
 # Week 5 — DynamoDB and Serverless Caching
 Hi guys! Welcome back to week 5!! It getting hotter in the kitchen but lets learn about a few definitions today.
 This week will be learning about NoSQl Databases and the different types that exist.
-- Then we will learn about NoSQL database in AWS which is DynamoDB. So lets start!!
+- Then we will learn about NoSQL databases in AWS, which in our case is DynamoDB. So lets start!!
 
  
 ## Introduction
@@ -32,88 +32,83 @@ This week will be learning about NoSQl Databases and the different types that ex
 - graphs
 - Multi-model type
 
-## Prerequisites
-
-
-
-## Business Use Cases
-1. Will be used with our application for message caching
-2. To create Amazon DynamoDB table for developers to use for their Web Application in AWS to allow for ***uninterrupted flow for a large amount of traffic in microseconds.***
-3. For ***milli-second response times***, we add a Amazon DynamoDB Accelerator (DAX) to improve the response time of the DynamoDB tables that has been linked to the Web Application in AWS.
-
-## Tasks
-- Have a lecture about data modeling (Single Table Design) for NoSQL
-- Launch DynamoDB local
-- Seed our DynamoDB tables with data using Faker
-- Write AWS SDK code for DynamoDB to query and scan put-item, for predefined endpoints
-- Create a production DynamoDB table
-- Update our backend app to use the production DynamoDB
-- Add a caching layer using Momento Severless Cache
-
-## A lecture about data modeling (Single Table Design) for NoSQL
-**Step 1 - DynamoDB Data Modelling Youtube video**
-A flat table as we do not have joins as is the case with Relational databases.
-NoSQL workbench
-
-**DynamoDB Data Modelling**
-
-It is better to put similar items in the same table/ reduces complexity in the application
-Global tables
-Sort keys?
-
-***Access Patterns***
-1. **A single conversation within the DM** - Determines the habit that a user will most likely use i.e to view messages in the dms, sort messages in descending order and only for the messages with the 2 users.
-2. **List of Conversations(all dms)** - 
-3. **Create a message** - 
-4. **Update message for the last message group** - 
-
-
-What are primary keys?
-What are partition keys?
-What are base tables?
-What is a GSI?-Global Secondary Index
-What are LSI? Local Secondary Indexes
-GSI vs LSI?
-4kb in read 1kb in writes.
-
 **Advantages of DynamoDB**
 - Fast
 - Consistent perfomance
 - Easily Scalable 
 
+## Prerequisites
+
+## Business Use Cases for DynamoDB
+1. Will be used with our application for message caching
+2. To create Amazon DynamoDB table for developers to use for their Web Application in AWS to allow for ***uninterrupted flow for a large amount of traffic in microseconds.***
+3. For ***milli-second response times***, we add a Amazon DynamoDB Accelerator (DAX) to improve the response time of the DynamoDB tables that has been linked to the Web Application in AWS.
+
+## Tasks
+- Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
+- Launch DynamoDB local
+- Seed our DynamoDB tables with data from ChatGPT
+- Write AWS SDK code for DynamoDB to query and scan put-item, for predefined endpoints
+- Create a production DynamoDB table
+- Update our backend app to use the production DynamoDB
+
+## Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
+**Step 1 - DynamoDB Data Modelling**
+A flat table as we do not have joins as is the case with Relational databases.
+For this use case, we will use Single Table Design so that all the related data(the conversations) are stored in a single table design. This technique ensures that data is fetched very fast and reliably. Since similar items are stored in the same table, it reduces complexity in the application
+
+***Access Patterns***
+1. **PATTERN A - A single conversation within the DM** - Determines the habit that a user will most likely use i.e to view messages in the dms, sort messages in descending order and only for the messages with the 2 users.
+2. **Pattern B - List of Conversations(all dms)s** - Shows message groups so that users can see a list of all messages with other users i.e DMs.
+3. **Pattern C - Create a new message** - Creates a new message in a new message group. 
+4. **Pattern D - Update message for the last message group** - Creates a new message in an existing message group
+
+This means that our DynamoDB table needs the following code to differentiate the access patterns:
+```
+my_message_group = {
+    'pk': {'S': f"GRP#{my_user_uuid}"},
+    'sk': {'S': last_message_at},
+    'message_group_uuid': {'S': message_group_uuid},
+    'message': {'S': message},
+    'user_uuid': {'S': other_user_uuid},
+    'user_display_name': {'S': other_user_display_name},
+    'user_handle':  {'S': other_user_handle}
+}
+
+other_message_group = {
+    'pk': {'S': f"GRP#{other_user_uuid}"},
+    'sk': {'S': last_message_at},
+    'message_group_uuid': {'S': message_group_uuid},
+    'message': {'S': message},
+    'user_uuid': {'S': my_user_uuid},
+    'user_display_name': {'S': my_user_display_name},
+    'user_handle':  {'S': my_user_handle}
+}
+
+message = {
+    'pk':   {'S': f"MSG#{message_group_uuid}"},
+    'sk':   {'S': created_at},
+    'message': {'S': message},
+    'message_uuid': {'S': message_uuid},
+    'user_uuid': {'S': my_user_uuid},
+    'user_display_name': {'S': my_user_display_name},
+    'user_handle': {'S': my_user_handle}
+}
+```
 
 ### Launch DynamoDB local
 **Step 2 - Start up DynamoDB locally**
-- In the backend-flask directory, install Boto3(the AWS python SDK) in our backend by pasting line 2 into ```requirements.txt``` and running line 3:
+- In the backend-flask directory, install Boto3(the AWS python SDK) in our backend by pasting line 2 into ```backend-flask/requirements.txt``` and running line 3 in the terminal :
 ``` 
-cd backend-flask/
 boto3
 pip install -r requirements.txt
 ```
 
 - Run ```Docker-compose up``` to start up Dynamo-db local.
-- In the existing ```bin``` directory, create a new folder named ```db``` and move all the db script files except for the rds script file.
-- In the existing ```bin``` directory, create a new folder named ```rds``` and move the remaining rds script file.
-
-**Common PostgreSQL commands**
-```
-\x on -- expanded display when looking at data
-\q -- Quit PSQL
-\l -- List all databases
-\c database_name -- Connect to a specific database
-\dt -- List all tables in the current database
-\d table_name -- Describe a specific table
-\du -- List all users and their roles
-\dn -- List all schemas in the current database
-CREATE DATABASE database_name; -- Create a new database
-DROP DATABASE database_name; -- Delete a database
-CREATE TABLE table_name (column1 datatype1, column2 datatype2, ...); -- Create a new table
-DROP TABLE table_name; -- Delete a table
-SELECT column1, column2, ... FROM table_name WHERE condition; -- Select data from a table
-INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...); -- Insert data into a table
-UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition; -- Update data in a table
-DELETE FROM table_name WHERE condition; -- Delete data from a table
-```
+- We will now create new folders in backend-flask to store the utility scripts: 
+- In the existing ```backend-flask/bin``` directory, create a new folder named ```/db``` and move all the scripts for the Postgres database only
+- In the existing ```backend-flask/bin``` directory, create a new folder named ```/rds``` and move the remaining rds script file for the AWS RDS Postgres database update-cognito-ids scripts .
+- ```backend-flask/bin/ddb ``` for the DynamoDB database only,
 
 ### Seed our DynamoDB tables with data using Faker
 **Step 3 -  Creating Schema-load Bash Script**
@@ -957,8 +952,35 @@ to
 ./bin/ddb/seed
 ```
 
-## Next Steps - Additional Homework Challenges
+**Common PostgreSQL commands**
+```
+\x on -- expanded display when looking at data
+\q -- Quit PSQL
+\l -- List all databases
+\c database_name -- Connect to a specific database
+\dt -- List all tables in the current database
+\d table_name -- Describe a specific table
+\du -- List all users and their roles
+\dn -- List all schemas in the current database
+CREATE DATABASE database_name; -- Create a new database
+DROP DATABASE database_name; -- Delete a database
+CREATE TABLE table_name (column1 datatype1, column2 datatype2, ...); -- Create a new table
+DROP TABLE table_name; -- Delete a table
+SELECT column1, column2, ... FROM table_name WHERE condition; -- Select data from a table
+INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...); -- Insert data into a table
+UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition; -- Update data in a table
+DELETE FROM table_name WHERE condition; -- Delete data from a table
+```
 
+## Next Steps - Additional Homework Challenges
+1. Add a caching layer using Momento Severless Cache
+What are primary keys?
+What are partition keys?
+What are base tables?
+What is a GSI?-Global Secondary Index
+What are LSI? Local Secondary Indexes
+GSI vs LSI?
+4kb in read 1kb in writes.
 
 
 **RESOURCES**
