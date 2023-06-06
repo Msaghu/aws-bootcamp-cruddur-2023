@@ -257,3 +257,7 @@ echo $DEFAULT_SUBNET_IDS
 
 Create an ECS cluster with service connect from the CLI
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
+
+Create a Load Balancer via the console
+- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
+- 
