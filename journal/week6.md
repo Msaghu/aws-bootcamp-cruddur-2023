@@ -171,7 +171,7 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 echo $DEFAULT_VPC_ID
 ```
 
-- Create a seciruty group via the CLI
+- Create a security group via the CLI
 ```
 export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
   --group-name "crud-srv-sg" \
@@ -183,5 +183,20 @@ echo $CRUD_SERVICE_SG
 
 - Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
 Desired tasks ```1``` 
+
+- Insatll sessions manager plugin for Linux
+
+- Access the ECS bash to view the status of the cluster 
+```
+aws ecs execute-command \
+  --region $AWS_REGION \
+  --cluster cruddur \
+  --task <task ARN> \
+  --conatiner backend-flask \
+  --command "/bin/bash" \
+  --interactive
+```
+
+- 
 
 ## Create our ECS cluster via the CLI 
