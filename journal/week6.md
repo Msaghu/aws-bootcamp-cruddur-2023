@@ -117,7 +117,7 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
 
-Create an ECS Task role and attach a policy 
+Create a Sessions Manager role and attach a policy 
 - In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \
@@ -133,11 +133,20 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/ssm-task-policy..json
 ```
 
+Create CloudWatch FullAccess policies to the SSM Task Role
+```
+aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurTaskRole
+```
 
+Create a write policy for the XRAY Daemon to the SSM Task Role
+```
+aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
+```
 
 Create a task definition file(this defines how we provision an application)
 Create it in the ECR console Tak definition 
 Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
+ 
  
 
 In the AWS ECR console
