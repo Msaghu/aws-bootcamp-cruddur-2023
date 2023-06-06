@@ -58,5 +58,31 @@ Copy URI from ECR python
 
 ## Docker compose up
 Run docker compose up for select services
-``` 
+
+## For Flask
+Create Repo
+```aws ecr create-repository \
+  --repository-name backend-flask \
+  --image-tag-mutability MUTABLE
+```
+
+Set URL
+```
+export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
+echo $ECR_BACKEND_FLASK_URL
+```
  
+ Build image
+ ```
+ docker build -t backend-flask .
+ ```
+ 
+ Tag Image
+ ```
+ docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
+ ```
+ 
+ Push image
+ ```
+ docker push $ECR_BACKEND_FLASK_URL:latest
+ ```
