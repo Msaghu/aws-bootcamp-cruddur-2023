@@ -206,15 +206,7 @@ aws ecs execute-command \
 ```
 
 ## Create our ECS cluster via the CLI 
-- to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
-```
-export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
- --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
- --query 'Subnets[*].SubnetId' \
- --output json | jq -r 'join(",")')
-echo $DEFAULT_SUBNET_IDS
-```
-OR the default VPC
+- OR the default VPC
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --filters "Name=isDefault, Values=true" \
@@ -222,6 +214,16 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --output text)
 echo $DEFAULT_VPC_ID
 ```
+
+-  to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
+```
+export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
+ --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
+ --query 'Subnets[*].SubnetId' \
+ --output json | jq -r 'join(",")')
+echo $DEFAULT_SUBNET_IDS
+```
+
 
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
 ```
@@ -235,28 +237,20 @@ echo $DEFAULT_VPC_ID
       "awsvpcConfiguration": {
         "assignPublicIp": "ENABLED",
         "securityGroups": [
-          "sg-0ffggfhhjhhhhhhhhhhh"
+          "sg-0f40b229443a0484b"
         ],
         "subnets": [
-          "subnet-0462b87709683ccaa",
-          "subnet-066a53dd88d557e05",
-          "subnet-021a6adafb79249e3"
+          "subnet-094cc4c02ce0ef450",
+          "subnet-0d5df2de4f694655b",
+          "subnet-0047f95522e4d005b",
+          "subnet-0ccf39fa8d7ecea5a",
+          "subnet-0c1abd9d2b57576d6",
+          "subnet-0e0fcd33f084bf3be"
         ]
       }
     },
     "propagateTags": "SERVICE",
     "serviceName": "backend-flask",
-    "taskDefinition": "backend-flask",
-    "serviceConnectConfiguration": {
-      "enabled": true,
-      "namespace": "cruddur",
-      "services": [
-        {
-          "portName": "backend-flask",
-          "discoveryName": "backend-flask",
-          "clientAliases": [{"port": 4567}]
-        }
-      ]
-    }
+    "taskDefinition": "backend-flask"
   }
   ```
