@@ -144,10 +144,37 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 ```
 
 Create a task definition file(this defines how we provision an application)
-Create it in the ECR console Tak definition 
-Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
- 
- 
+- Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
+{Make sure to change the values in the file as per your account}
 
-In the AWS ECR console
-Choose clusters > Choose the ```cuddur``` cluster > Choose create > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` > 
+- Register the Task definition for the backend-flask
+```
+aws ecs register-task-definition --cli-input-json file://aws/task-definitions/backend-flask.json
+```
+- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created
+
+# Create our ECS cluster 
+## Create our ECS cluster via the console (minute 1:32:16)
+- Create a default VPC via the terminal
+```
+export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
+--filters "Name=isDefault, Values=true" \
+--query "Vpcs[0].VpcId" \
+--output text)
+echo $DEFAULT_VPC_ID
+```
+
+- Create a seciruty group via the CLI
+```
+export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
+  --group-name "crud-srv-sg" \
+  --description "Security group for Cruddur services on ECS" \
+  --vpc-id $DEFAULT_VPC_ID \
+  --query "GroupId" --output text)
+echo $CRUD_SERVICE_SG
+```
+
+- Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
+Desired tasks ```1``` 
+
+## Create our ECS cluster via the CLI 
