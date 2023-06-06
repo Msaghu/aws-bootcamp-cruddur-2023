@@ -117,6 +117,22 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
 
+Create an ECS Task role and attach a policy 
+- In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
+```
+aws iam create-role \
+    --role-name CruddurTaskRole \
+    --assume-role-policy-document file://aws/policies/service-assume-role-ssm-task-policy.json
+```
+- Confirm that the role was created in the AWS IAM console.
+- We will now create a policy, ```SSMAccessPolicy``` [aws/policies/ssm-task-policy.json]() and attach it to the ```CruddurTaskRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+```
+aws iam put-role-policy \
+  --policy-name SSMAccessPolicy \
+  --role-name CruddurTaskRole \
+  --policy-document file://aws/policies/ssm-task-policy..json
+```
+
 
 
 Create a task definition file(this defines how we provision an application)
