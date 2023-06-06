@@ -185,7 +185,15 @@ echo $CRUD_SERVICE_SG
 Desired tasks ```1``` 
 
 - Insatll sessions manager plugin for Linux
+```
+curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+```
 
+- Then
+```sudo dpkg -i session-manager-plugin.deb```
+- To verify that it was successfully installed
+``` session-manager-plugin```
+- 
 - Access the ECS bash to view the status of the cluster 
 ```
 aws ecs execute-command \
