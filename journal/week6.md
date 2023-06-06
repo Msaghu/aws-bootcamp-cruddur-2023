@@ -214,6 +214,14 @@ export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
  --output json | jq -r 'join(",")')
 echo $DEFAULT_SUBNET_IDS
 ```
+OR the default VPC
+```
+export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
+--filters "Name=isDefault, Values=true" \
+--query "Vpcs[0].VpcId" \
+--output text)
+echo $DEFAULT_VPC_ID
+```
 
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
 ```
