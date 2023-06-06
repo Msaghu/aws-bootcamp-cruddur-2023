@@ -116,6 +116,13 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
+- We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+```
+aws iam put-role-policy \
+  --policy-name CloudWatchFullAccessPolicy \
+  --role-name CruddurServiceExecutionRole \
+  --policy-document file://aws/policies/cloudwatch-fullaccess-policy.json
+```
 
 Create a Sessions Manager role and attach a policy 
 - In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
