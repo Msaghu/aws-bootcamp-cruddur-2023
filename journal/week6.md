@@ -53,10 +53,10 @@ docker pull python:3.10-slim-buster
 ## Push the Python image to ECR
 ```docker push $ECR_PYTHON_URL:3.10-slim-buster```
 
-## Prepare oyr Flask App to use the python image from ECR
+## Prepare our Flask App to use the python image from ECR
 Copy URI from ECR python
 
-## Docker compose up
+### Docker compose up
 Run docker compose up for select services
 
 ## For Flask
@@ -86,3 +86,43 @@ echo $ECR_BACKEND_FLASK_URL
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
+
+Register Task Definitions
+- Create Parameter Store from Syetms manager to create parameters that will enable us to conceal sensitive information
+- We will ensure that the items listed below have been set as environment variabels(i.r ruun env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
+- Then run the following commands in the terminal.
+```
+aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/AWS_ACCESS_KEY_ID" --value $AWS_ACCESS_KEY_ID
+aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/AWS_SECRET_ACCESS_KEY" --value $AWS_SECRET_ACCESS_KEY
+aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/CONNECTION_URL" --value $PROD_CONNECTION_URL
+aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/ROLLBAR_ACCESS_TOKEN" --value $ROLLBAR_ACCESS_TOKEN
+aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_EXPORTER_OTLP_HEADERS" --value "x-honeycomb-team=$HONEYCOMB_API_KEY"
+```
+
+- Check that the values have been set in ```AWS Systems Manger > Parameter Store``` to make sure that the values were correctly set.
+
+Create an ECS role and attach a policy that will allow ECS to execute tasks
+- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-execution-policy.json]() and run the following in the terminal to create the role:
+```
+aws iam create-role \
+    --role-name CruddurServiceExecutionRole \
+    --assume-role-policy-document
+```
+- Confirm that the role was created in the AWS IAM console.
+- We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+```
+aws iam put-role-policy \
+  --policy-name CruddurServiceExecutionPolicy \
+  --role-name CruddurServiceExecutionRole \
+  --policy-document file://aws/policies/service-execution-policy.json
+```
+
+
+
+Create a task definition file(this defines how we provision an application)
+Create it in the ECR console Tak definition 
+Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
+ 
+
+In the AWS ECR console
+Choose clusters > Choose the ```cuddur``` cluster > Choose create > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` > 
