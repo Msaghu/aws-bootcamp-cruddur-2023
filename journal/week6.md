@@ -109,14 +109,14 @@ aws iam create-role \
 --assume-role-policy-document file://aws/policies/service-assume-role-execution-policy.json
 ```
 - Confirm that the role was created in the AWS IAM console.
-- We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+- We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
   --policy-name CruddurServiceExecutionPolicy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
-- We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+- We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
   --policy-name CloudWatchFullAccessPolicy \
