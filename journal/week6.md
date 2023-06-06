@@ -205,6 +205,50 @@ aws ecs execute-command \
   --interactive
 ```
 
-- 
-
 ## Create our ECS cluster via the CLI 
+- to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
+```
+export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
+ --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
+ --query 'Subnets[*].SubnetId' \
+ --output json | jq -r 'join(",")')
+echo $DEFAULT_SUBNET_IDS
+```
+
+- create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
+```
+{
+    "cluster": "cruddur",
+    "launchType": "FARGATE",
+    "desiredCount": 1,
+    "enableECSManagedTags": true,
+    "enableExecuteCommand": true,
+    "networkConfiguration": {
+      "awsvpcConfiguration": {
+        "assignPublicIp": "ENABLED",
+        "securityGroups": [
+          "sg-0ffggfhhjhhhhhhhhhhh"
+        ],
+        "subnets": [
+          "subnet-0462b87709683ccaa",
+          "subnet-066a53dd88d557e05",
+          "subnet-021a6adafb79249e3"
+        ]
+      }
+    },
+    "propagateTags": "SERVICE",
+    "serviceName": "backend-flask",
+    "taskDefinition": "backend-flask",
+    "serviceConnectConfiguration": {
+      "enabled": true,
+      "namespace": "cruddur",
+      "services": [
+        {
+          "portName": "backend-flask",
+          "discoveryName": "backend-flask",
+          "clientAliases": [{"port": 4567}]
+        }
+      ]
+    }
+  }
+  ```
