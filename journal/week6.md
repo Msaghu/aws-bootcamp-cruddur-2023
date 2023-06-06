@@ -102,11 +102,11 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_
 - Check that the values have been set in ```AWS Systems Manger > Parameter Store``` to make sure that the values were correctly set.
 
 Create an ECS role and attach a policy that will allow ECS to execute tasks
-- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-execution-policy.json]() and run the following in the terminal to create the role:
+- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-assume-role-execution-policy.json]() and run the following in the terminal to create the role:
 ```
-aws iam create-role \
-    --role-name CruddurServiceExecutionRole \
-    --assume-role-policy-document
+aws iam create-role \    
+--role-name CruddurServiceExecutionRole  \   
+--assume-role-policy-document file://aws/policies/service-assume-role-execution-policy.json
 ```
 - Confirm that the role was created in the AWS IAM console.
 - We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
