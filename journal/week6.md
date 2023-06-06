@@ -254,3 +254,6 @@ echo $DEFAULT_SUBNET_IDS
     "taskDefinition": "backend-flask"
   }
   ```
+
+Create an ECS cluster with service connect from the CLI
+- create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
