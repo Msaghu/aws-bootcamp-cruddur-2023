@@ -1,5 +1,4 @@
-FROM python:3.10-slim-buster
-
+FROM 919056228998.dkr.ecr.us-east-1.amazonaws.com/cruddur-python:3.10-slim-buster
 
 #Step:2  Make a new folder inside the container
 WORKDIR /backend-flask
@@ -14,7 +13,7 @@ RUN pip3 install -r requirements.txt
 COPY . .
 
 #Step 5: Sets Environment variables permanently while the container is running
-ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
 
 EXPOSE ${PORT}
 
