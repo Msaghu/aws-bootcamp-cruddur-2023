@@ -261,3 +261,11 @@ Create an ECS cluster with service connect from the CLI
 Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 - 
+
+## ECS Security best practises
+### Business Use cases of of AWS ECS
+1. Deploying an application to a container using AWS ECS.
+
+### AWS ECS Launch types 
+1. Use Elastic Load Balancers(ELBs)o Scaling groups
+2. Amazon ECS architecture - 
