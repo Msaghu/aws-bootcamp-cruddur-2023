@@ -19,7 +19,8 @@ What are Health checks?
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
-# Perfoming Health checks on our Cruddur application
+# 
+## Perfoming Health checks on our Cruddur application
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
 - The various stages are:
 1. At the Load Balancer level
