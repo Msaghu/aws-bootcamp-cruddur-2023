@@ -267,5 +267,16 @@ Create a Load Balancer via the console
 1. Deploying an application to a container using AWS ECS.
 
 ### AWS ECS Launch types 
-1. Use Elastic Load Balancers(ELBs)o Scaling groups
-2. Amazon ECS architecture - 
+1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
+2. Amazon ECS architecture - Use Elastic Load Balancers(ELBs) + Amazon ECS Cluster
+3. Using AWS Fargate - Elastic Load Balancers(ELBs) + Amazon ECS Cluster
+
+### Security challenges with AWS Fargate
+1. Infrastructure is AWS managed thus no visilibility of infrastructure.
+2. Ephemeral resources make it hard to do triage/forensics for detectewd threats.
+3. No file/network monitoring.
+4. Cannot run traditional security agents.
+5. User can run unverified container images.
+6.  Containers can run as root and with elevated priviledges(when working with Linux systems, this can be very dangerous as root priviledges give users unlimited access to your entire system thus they can delete important running systems).
+
+### Amazon 
