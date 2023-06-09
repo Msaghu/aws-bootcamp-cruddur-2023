@@ -2,6 +2,23 @@
 
 What are Health checks?
 
+# Architecture Description
+- A custom VPC with 6 public subnets that route on to the internet, this week's AWS resources attempt to use this custom VPC.
+- An ECS Fargate cluster running a single service for the backend flask application
+- The backend flask application container image is hosted in a private ECR repo
+- The target services are using ECS Connect
+- An internet facing application Elastic Load Balancer is serving the backend flask application on a subnet. The backend flask application runs on port 4567
+
+# Tasks
+1. Create an Elastic Container Repository (ECR) 
+2. Push our container images to ECR
+3. Write an ECS Task Definition file for Fargate
+4. Launch our Fargate services via CLI
+5. Test that our services individually work
+6. Play around with Fargate desired capacity
+7. How to push new updates to your code update Fargate running tasks
+8. Test that we have a Cross-origin Resource Sharing (CORS) issue
+
 # Perfoming Health checks on our Cruddur application
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
 - The various stages are:
@@ -279,4 +296,5 @@ Create a Load Balancer via the console
 5. User can run unverified container images.
 6.  Containers can run as root and with elevated priviledges(when working with Linux systems, this can be very dangerous as root priviledges give users unlimited access to your entire system thus they can delete important running systems).
 
-### Amazon 
+### Amazon ECS - Security Best practises
+1. 
