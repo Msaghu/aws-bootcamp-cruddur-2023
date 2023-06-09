@@ -2,6 +2,11 @@
 
 What are Health checks?
 
+### AWS ECS Launch types 
+1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
+2. Amazon ECS architecture - Use Elastic Load Balancers(ELBs) + Amazon ECS Cluster
+3. Using AWS Fargate - Elastic Load Balancers(ELBs) + Amazon ECS Cluster
+
 # Architecture Description
 - A custom VPC with 6 public subnets that route on to the internet, this week's AWS resources attempt to use this custom VPC.
 - An ECS Fargate cluster running a single service for the backend flask application
@@ -19,37 +24,14 @@ What are Health checks?
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
-# Test that our services work individually
-- To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
-- The various stages are:
-1. At the Load Balancer level
-2. At the container level
-3. Of the RDS instance
-
-{Before starting these stepos, make sure to start your RDS instance in AWS}
-
-### Step 1: Perform health checks on our RDS instance
-- In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
-- This will tell us if health check was successful on our local postgres DB.
-- Since we are now running in production, we will add production to the test script.
-- This will connect us to our container.
-- Check { env | grep CONNECTION }
-
-### Step 2: Perform health checks on our Flask App
-- In ```backend-flask/app.py``` add in new code [backend-flask/app.py](_)
-- In ```backend-flask/bin``` create a new file ```/flask```[backend-flask/bin/flask](_)
-
-### Step 3: Create a new CloudWatch log group
-
-
 # Create an Elastic Container Repository (ECR) 
-### Step 4: Create an Elastic Container Repository(ECR) via the CLI
+### Step 1: Create an Elastic Container Repository(ECR) via the CLI
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 - In AWS ECR, we can create a private repository uasing the following steps:
-- aMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
+- AMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
 - Now let's do this via the AWS CLI in Gitpod. 
 
-##### For Base image python
+##### Create a Private Repository via the CLI
 - To create a repository ```cruddur-python``` in ECR:
 ```
 aws ecr create-repository \
@@ -70,7 +52,7 @@ echo $ECR_PYTHON_URL
 ```
 
 # Push our container images to ECR
-### Step 5: Push a Python Image to the container we created above for the backend 
+### Step 2: Push a Python Image to the container we created above for the backend 
 ##### Pull Python Image from Dockerhub
 - Pull the python image from Dockerhub to our local environment , then confrim that its downloaded/pulled
 ```
@@ -84,42 +66,42 @@ docker images
 ##### Prepare our Flask App to use the python image from ECR
 - We will copy URI from the ECR python image into our Dockerfile so that we now use the image stored in ECR i.e the first line of the Dockerfile:
 ```nbjhg```
-### Docker compose up
+##### Docker compose up
 - Run docker compose up for the backend and the Database.
 - To test that the application is now running, launch the backend service then paste in ```/api/health-check```, should return : 
 ``` { success: True } ```
 
-### Step 5: Push a Python Image to the conatiner we created above for Flask
-Create Repo
+### Step 3: Push a Python Image to the conatiner we created above for Flask
+- Create Repo
 ```aws ecr create-repository \
   --repository-name backend-flask \
   --image-tag-mutability MUTABLE
 ```
 
-Set URL
+##### Set URL
 ```
 export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
 echo $ECR_BACKEND_FLASK_URL
 ```
- 
- Build image
+  ##### Build image
  ```
  docker build -t backend-flask .
  ```
- 
- Tag Image
+  ##### Tag Image
  ```
  docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
  ```
- 
- Push image
+  ##### Push image
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
+### Step 4: Push a React Image to the container we created above for the frontend
 
-Register Task Definitions
-- Create Parameter Store from Syetms manager to create parameters that will enable us to conceal sensitive information
-- We will ensure that the items listed below have been set as environment variabels(i.r ruun env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
+
+# Write an ECS Task Definition file for Fargate
+### Step 5: Create Task and Execution Roles for Task definition
+- Create Parameter Store from Systems Manager to create parameters that will enable us to conceal sensitive information
+- We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
 - Then run the following commands in the terminal.
 ```
 aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/AWS_ACCESS_KEY_ID" --value $AWS_ACCESS_KEY_ID
@@ -129,9 +111,9 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/ROLLB
 aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_EXPORTER_OTLP_HEADERS" --value "x-honeycomb-team=$HONEYCOMB_API_KEY"
 ```
 
-- Check that the values have been set in ```AWS Systems Manger > Parameter Store``` to make sure that the values were correctly set.
+- Go to ```AWS Systems Manager > Parameter Store``` to make sure that the values were correctly set.
 
-Create an ECS role and attach a policy that will allow ECS to execute tasks
+### Step 6: Create an ECS role and attach a policy that will allow ECS to execute tasks
 - In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-assume-role-execution-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \    
@@ -146,6 +128,8 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
+
+### Step 7: Create a CloudWatchFullAccess policy 
 - We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
@@ -153,8 +137,11 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/cloudwatch-fullaccess-policy.json
 ```
-
-Create a Sessions Manager role and attach a policy 
+OR you can also do this
+```
+aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurServiceExecutionRole
+```
+### Step 8: Create a Sessions Manager role and attach a policy 
 - In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \
@@ -170,12 +157,14 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/ssm-task-policy..json
 ```
 
-Create CloudWatch FullAccess policies to the SSM Task Role
+### Step 9: Create CloudWatch FullAccess policies to the SSM Task Role
+- Attach an existing AWS policy, ```CloudWatch FullAccess``` via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurTaskRole
 ```
 
-Create a write policy for the XRAY Daemon to the SSM Task Role
+### Step 10: Create a write policy for the XRAY Daemon to the SSM Task Role
+- Attach an existing AWS policy, ```CloudWatch FullAccess``` via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
@@ -298,10 +287,31 @@ Create a Load Balancer via the console
 ### Business Use cases of of AWS ECS
 1. Deploying an application to a container using AWS ECS.
 
-### AWS ECS Launch types 
-1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
-2. Amazon ECS architecture - Use Elastic Load Balancers(ELBs) + Amazon ECS Cluster
-3. Using AWS Fargate - Elastic Load Balancers(ELBs) + Amazon ECS Cluster
+
+
+# Test that our services work individually
+- To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
+- The various stages are:
+1. At the Load Balancer level
+2. At the container level
+3. Of the RDS instance
+
+{Before starting these stepos, make sure to start your RDS instance in AWS}
+
+### Step 1: Perform health checks on our RDS instance
+- In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
+- This will tell us if health check was successful on our local postgres DB.
+- Since we are now running in production, we will add production to the test script.
+- This will connect us to our container.
+- Check { env | grep CONNECTION }
+
+### Step 2: Perform health checks on our Flask App
+- In ```backend-flask/app.py``` add in new code [backend-flask/app.py](_)
+- In ```backend-flask/bin``` create a new file ```/flask```[backend-flask/bin/flask](_)
+
+### Step 3: Create a new CloudWatch log group
+
+
 
 ### Security challenges with AWS Fargate
 1. Infrastructure is AWS managed thus no visilibility of infrastructure.
@@ -313,3 +323,4 @@ Create a Load Balancer via the console
 
 ### Amazon ECS - Security Best practises
 1. 
+
