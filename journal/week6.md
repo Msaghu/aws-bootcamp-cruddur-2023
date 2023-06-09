@@ -36,13 +36,22 @@ What are Health checks?
 - Check { env | grep CONNECTION }
 
 ## Step 2: Perform health checks on our Flask App
-- 
+- In ```backend-flask/app.py``` add in new code [backend-flask/app.py](_)
+- In ```backend-flask/bin``` create a new file ```/flask```[backend-flask/bin/flask](_)
+
+## Step 3: Create a new CloudWatch log group
+
 
 # Launch our Fargate services via CLI
-Prepare containers to be deployed to Fargate
+- We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 
-## For Base image python
-Create repository in ECR
+## Step 3: Prepare containers to be deployed to Fargate
+- In AWS ECR, we can create a private repository uasing the following steps:
+- aMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
+- Now let's do this via the AWS CLI in Gitpod. 
+
+### For Base image python
+- To create a repository ```cruddur-python``` in ECR:
 ```
 aws ecr create-repository \
   --repository-name cruddur-python \
