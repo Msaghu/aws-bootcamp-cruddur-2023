@@ -19,8 +19,7 @@ What are Health checks?
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
-# 
-## Perfoming Health checks on our Cruddur application
+# Test that our services individually work
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
 - The various stages are:
 1. At the Load Balancer level
@@ -29,17 +28,18 @@ What are Health checks?
 
 {Before starting these stepos, make sure to start your RDS instance in AWS}
 
-## Perform health checks on our RDS instance
+## Step 1: Perform health checks on our RDS instance
 - In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
 - This will tell us if health check was successful on our local postgres DB.
 - Since we are now running in production, we will add production to the test script.
 - This will connect us to our container.
+- Check { env | grep CONNECTION }
+
+## Step 2: Perform health checks on our Flask App
 - 
-| un env }
 
-## Perform health checks on our Flask App
-
-# Prepare containers to be deployed to Fargate
+# Launch our Fargate services via CLI
+Prepare containers to be deployed to Fargate
 
 ## For Base image python
 Create repository in ECR
