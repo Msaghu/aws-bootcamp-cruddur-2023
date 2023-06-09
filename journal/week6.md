@@ -28,48 +28,49 @@ What are Health checks?
 
 {Before starting these stepos, make sure to start your RDS instance in AWS}
 
-## Step 1: Perform health checks on our RDS instance
+### Step 1: Perform health checks on our RDS instance
 - In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
 - This will tell us if health check was successful on our local postgres DB.
 - Since we are now running in production, we will add production to the test script.
 - This will connect us to our container.
 - Check { env | grep CONNECTION }
 
-## Step 2: Perform health checks on our Flask App
+### Step 2: Perform health checks on our Flask App
 - In ```backend-flask/app.py``` add in new code [backend-flask/app.py](_)
 - In ```backend-flask/bin``` create a new file ```/flask```[backend-flask/bin/flask](_)
 
-## Step 3: Create a new CloudWatch log group
+### Step 3: Create a new CloudWatch log group
 
 
 # Launch our Fargate services via CLI
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 
-## Step 3: Prepare containers to be deployed to Fargate
+### Step 3: Prepare containers to be deployed to Fargate
 - In AWS ECR, we can create a private repository uasing the following steps:
 - aMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
 - Now let's do this via the AWS CLI in Gitpod. 
 
-### For Base image python
+##### For Base image python
 - To create a repository ```cruddur-python``` in ECR:
 ```
 aws ecr create-repository \
   --repository-name cruddur-python \
   --image-tag-mutability MUTABLE
   ```
+##### Log in to ECR via CLI
+ - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
  
- ## Log in to ECR 
  ```
  aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
- 
- ## Set URL
- ```
- export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
+##### Set URL
+- We will now set path for the address that will map to our ECR IP
+```
+export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
 echo $ECR_PYTHON_URL
 ```
-
-## Pull Python Image from Dockerhub
+##### Pull Python Image from Dockerhub
+- 
 ```
 docker pull python:3.10-slim-buster
 ```
