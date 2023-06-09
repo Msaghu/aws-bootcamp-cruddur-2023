@@ -169,7 +169,7 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAc
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
 
-Create a task definition file(this defines how we provision an application)
+### Step 11: Create a task definition file(this defines how we provision an application)
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
 {Make sure to change the values in the file as per your account}
 
@@ -180,9 +180,9 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created
 
 # Launch our Fargate services via CLI
-### Step 4: Prepare containers to be deployed to Fargate
-# Create our ECS cluster 
-## Create our ECS cluster via the console (minute 1:32:16)
+### Step 12: Prepare containers to be deployed to Fargate
+### Step 13: Create our ECS cluster 
+##### Create our ECS cluster via the console (minute 1:32:16)
 - Create a default VPC via the terminal
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
