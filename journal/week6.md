@@ -70,7 +70,7 @@ echo $ECR_PYTHON_URL
 ```
 
 # Push our container images to ECR
-### Step 5: Push a Python Image to the conatiner we created above
+### Step 5: Push a Python Image to the container we created above for the backend 
 ##### Pull Python Image from Dockerhub
 - Pull the python image from Dockerhub to our local environment , then confrim that its downloaded/pulled
 ```
@@ -82,13 +82,14 @@ docker images
 ##### Push the Python image to ECR
 ```docker push $ECR_PYTHON_URL:3.10-slim-buster```
 ##### Prepare our Flask App to use the python image from ECR
-- We will copy URI from the ECR python image into our Dockerfile i.e the first line of the Dockerfile:
+- We will copy URI from the ECR python image into our Dockerfile so that we now use the image stored in ECR i.e the first line of the Dockerfile:
 ```nbjhg```
-
 ### Docker compose up
-Run docker compose up for select services
+- Run docker compose up for the backend and the Database.
+- To test that the application is now running, launch the backend service then paste in ```/api/health-check```, should return : 
+``` { success: True } ```
 
-## For Flask
+### Step 5: Push a Python Image to the conatiner we created above for Flask
 Create Repo
 ```aws ecr create-repository \
   --repository-name backend-flask \
