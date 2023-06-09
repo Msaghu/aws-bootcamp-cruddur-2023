@@ -19,7 +19,7 @@ What are Health checks?
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
-# Test that our services individually work
+# Test that our services work individually
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
 - The various stages are:
 1. At the Load Balancer level
@@ -42,10 +42,9 @@ What are Health checks?
 ### Step 3: Create a new CloudWatch log group
 
 
-# Launch our Fargate services via CLI
+# Create an Elastic Container Repository (ECR) 
+### Step 4: Create an Elastic Container Repository(ECR) via the CLI
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
-
-### Step 3: Prepare containers to be deployed to Fargate
 - In AWS ECR, we can create a private repository uasing the following steps:
 - aMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
 - Now let's do this via the AWS CLI in Gitpod. 
@@ -69,20 +68,22 @@ aws ecr create-repository \
 export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
 echo $ECR_PYTHON_URL
 ```
+
+# Push our container images to ECR
+### Step 5: Push a Python Image to the conatiner we created above
 ##### Pull Python Image from Dockerhub
-- 
+- Pull the python image from Dockerhub to our local environment , then confrim that its downloaded/pulled
 ```
-docker pull python:3.10-slim-buster
+docker pull python:3.10-slim-buster 
+docker images
 ```
-
-## Tag the Python image pulled above
+##### Tag the Python image pulled above
 ```docker tag python:3.10-slim-buster $ECR_PYTHON_URL:3.10-slim-buster```
-
-## Push the Python image to ECR
+##### Push the Python image to ECR
 ```docker push $ECR_PYTHON_URL:3.10-slim-buster```
-
-## Prepare our Flask App to use the python image from ECR
-Copy URI from ECR python
+##### Prepare our Flask App to use the python image from ECR
+- We will copy URI from the ECR python image into our Dockerfile i.e the first line of the Dockerfile:
+```nbjhg```
 
 ### Docker compose up
 Run docker compose up for select services
@@ -188,6 +189,8 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 ```
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created
 
+# Launch our Fargate services via CLI
+### Step 4: Prepare containers to be deployed to Fargate
 # Create our ECS cluster 
 ## Create our ECS cluster via the console (minute 1:32:16)
 - Create a default VPC via the terminal
