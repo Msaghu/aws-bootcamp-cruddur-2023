@@ -14,7 +14,7 @@ What are Health checks?
 - The target services are using ECS Connect
 - An internet facing application Elastic Load Balancer is serving the backend flask application on a subnet. The backend flask application runs on port 4567
 
-# Tasks
+## Tasks
 1. Create an Elastic Container Repository (ECR) 
 2. Push our container images to ECR
 3. Write an ECS Task Definition file for Fargate
@@ -178,6 +178,10 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/backend-flask.json
 ```
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created
+
+# Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
+### Step 12: For the Backend Application
+### Step 12: For the Frontend Application
 
 # Launch our Fargate services via CLI
 ### Step 12: Prepare containers to be deployed to Fargate
@@ -353,6 +357,10 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ### Step 3: Create a new CloudWatch log group
 
+# Create a custom domain with SSL and Route53
+### Step : Create a Hosted zone in Route 53
+- In the AWS console, go to Route 53 > Go to ```Hosted zones``` > 
+
 ## ECS Security best practises
 ### Business Use cases of of AWS ECS
 1. Deploying an application to a container using AWS ECS.
@@ -367,4 +375,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ### Amazon ECS - Security Best practises
 1. 
+
+### Additional homework challenges
+1. Create a hosted zone with the AWS CLI
 
