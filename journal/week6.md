@@ -297,14 +297,25 @@ docker build \
 - Ispect the container using
 ``` docker inspect <container id>```
 
-- Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
-
 ##### Connect to the Frontend ECS cluster container
-- In the terminal, run ```./bin/ecs/connect-to-service <task-id/arn number of the service> frontend-react.js```
-- 
-##### Run the Frontend image
-- We will run the container before we can test it.
-``` docker run --rm -p 3000:3000 -it frontend-react-js ```
+- Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
+- In the terminal, run ```chmod u+x ./bin/ecs/connect-to-frontend-react-js```.
+- Then to connect run ```./bin/ecs/connect-to-service <task-id/arn number of the service ```
+- Test curl localhost:3000
+
+##### Create a task definition for the Front-end container
+- To create a task in the container, we will:
+- Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
+- In the terminal, run ```chmod u+x ./bin/ecs/frontend-react-js.json```.
+- In task-defintion, make sure to add in the ```health-check``` in the json file, at the container level:
+```
+```
+
+##### Register Task definition for the Front-end container
+
+```
+aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
+```
 
 ##### Create our ECS cluster via the console for the Frontend-react
 - Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
@@ -312,6 +323,14 @@ docker build \
 aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
 ```
 - Login AWS ECS clusters to make sure that its been launched.
+
+
+
+##### Run the Frontend image
+- We will run the container before we can test it.
+``` docker run --rm -p 3000:3000 -it frontend-react-js ```
+
+
 
 
 
