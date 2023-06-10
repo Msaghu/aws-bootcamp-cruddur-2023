@@ -181,7 +181,7 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 
 # Launch our Fargate services via CLI
 ### Step 12: Prepare containers to be deployed to Fargate
-### Step 13: Create our ECS cluster 
+### Step 13: Create our ECS cluster for the backend-flask
 ##### Create our ECS cluster via the console (minute 1:32:16)
 - Create a default VPC via the terminal
 ```
@@ -281,13 +281,10 @@ Create an ECS cluster with service connect from the CLI
 
 Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
+
+### Step 13: Create our ECS cluster for the backend-flask
+##### Create our ECS cluster via the console (minute 1:32:16)
 - 
-
-## ECS Security best practises
-### Business Use cases of of AWS ECS
-1. Deploying an application to a container using AWS ECS.
-
-
 
 # Test that our services work individually
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
@@ -311,7 +308,9 @@ Create a Load Balancer via the console
 
 ### Step 3: Create a new CloudWatch log group
 
-
+## ECS Security best practises
+### Business Use cases of of AWS ECS
+1. Deploying an application to a container using AWS ECS.
 
 ### Security challenges with AWS Fargate
 1. Infrastructure is AWS managed thus no visilibility of infrastructure.
