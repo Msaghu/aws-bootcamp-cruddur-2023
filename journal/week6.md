@@ -324,15 +324,12 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 ```
 - Login AWS ECS clusters to make sure that its been launched.
 
-
+##### Create a Security group that will allow requests to the Frontend container form the Load Balancer
+- In the AWS ECS console, in the front-end-react Networking tab, ```Security Groups``` > Choose ```Edit inbound rule``` > Add in a port range ```3000``` for the frontend Load Balancer > Add in a port range ```4567``` for the backend Load Balancer
 
 ##### Run the Frontend image
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
-
-
-
-
 
 # Test that our services work individually
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
