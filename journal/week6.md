@@ -283,8 +283,14 @@ Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
 ### Step 13: Create our ECS cluster for the backend-flask
-##### Create our ECS cluster via the console (minute 1:32:16)
-- 
+##### Create our ECS cluster via the console for the Frontend-react
+- Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
+```
+aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
+```
+- Login AWS ECS clusters to make sure that its been launched.
+
+
 
 # Test that our services work individually
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
