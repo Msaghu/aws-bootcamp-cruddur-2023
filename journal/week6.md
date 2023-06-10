@@ -359,7 +359,13 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 # Create a custom domain with SSL and Route53
 ### Step : Create a Hosted zone in Route 53
-- In the AWS console, go to Route 53 > Go to ***Hosted zones*** > Select ***Create a hosted zone*** > In ***Hosted zone configuration/Domain name*** add in app.cruddur.com > In ***Type*** choose 
+- In the AWS console, go to Route 53 > Go to ***Hosted zones*** > Select ***Create a hosted zone*** > In ***Hosted zone configuration/Domain name*** add in cruddur.com > In ***Type*** choose Public hosted zone then choose ***Create hosted zone***
+- Open the ```cruddur.com``` page to view the nameservers.
+- If you had bought a domain from a vendor eg GoDaddy, open their name servers page and paste in the values of the nameservers to your domain from Godaddy.
+
+### Step : Create an SSL certificate with AWS Certificate Manager
+- In the AWS console, go to AWS Certificate Manager > Choose ***Request certificate*** > Choose ***Request a public certificate*** > Choose Next then in Request Public certificate page, Add in your ***Domain name*** (that you created in the step above) > In Validation method, choose ***DNS validation*** > In ***Key algorithm*** leave it as the default > Choose ***Request***.
+- While the certificate in creating, we can click into it and choose ***Create DNS records in Amazon Route 53*** 
 
 ## ECS Security best practises
 ### Business Use cases of of AWS ECS
