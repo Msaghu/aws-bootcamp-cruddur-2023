@@ -281,7 +281,7 @@ echo $DEFAULT_SUBNET_IDS
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
 ### Step 13: Create our ECS cluster for the backend-flask
-##### Build Frontend image locally
+##### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
 docker build \
@@ -297,13 +297,14 @@ docker build \
 - Ispect the container using
 ``` docker inspect <container id>```
 
-- Create a new file in ```bckend-flask
+- Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
 
-
+##### Connect to the Frontend ECS cluster container
+- In the terminal, run ```./bin/ecs/connect-to-service <task-id/arn number of the service> frontend-react.js```
+- 
 ##### Run the Frontend image
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
-
 
 ##### Create our ECS cluster via the console for the Frontend-react
 - Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
@@ -312,9 +313,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 ```
 - Login AWS ECS clusters to make sure that its been launched.
 
-##### Connect to the Frontend ECS cluster container
-- In the terminal, run ```./bin/ecs/connect-to-service <task-id/arn number of the service> frontend-react.js```
-- 
+
 
 # Test that our services work individually
 - To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
