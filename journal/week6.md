@@ -359,7 +359,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 # Create a custom domain with SSL and Route53
 ### Step : Create a Hosted zone in Route 53
-- In the AWS console, go to Route 53 > Go to ```Hosted zones``` > 
+- In the AWS console, go to Route 53 > Go to ***Hosted zones*** > Select ***Create a hosted zone*** > In ***Hosted zone configuration/Domain name*** add in app.cruddur.com > In ***Type*** choose 
 
 ## ECS Security best practises
 ### Business Use cases of of AWS ECS
@@ -376,6 +376,6 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 ### Amazon ECS - Security Best practises
 1. 
 
-### Additional homework challenges
+## Additional homework challenges
 1. Create a hosted zone with the AWS CLI
 
