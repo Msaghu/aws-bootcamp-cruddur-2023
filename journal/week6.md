@@ -366,6 +366,10 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 - Open the ```cruddur.com``` page to view the nameservers.
 - If you had bought a domain from a vendor eg GoDaddy, open their name servers page and paste in the values of the nameservers to your domain from Godaddy.
 
+### Create a record
+- In the AWS console, go to Route 53 > Go to the cruddur.com host zone and click ***Create record*** > In Quick create record, select ***A record*** > Choose ***alias*** and Route traffic to the Application Load Balancer we created earlier > Select region wehere we created the LB
+
+
 ### Step : Create an SSL certificate with AWS Certificate Manager
 - In the AWS console, go to AWS Certificate Manager > Choose ***Request certificate*** > Choose ***Request a public certificate*** > Choose Next then in Request Public certificate page, Add in your ***Domain name*** (that you created in the step above) > In Validation method, choose ***DNS validation*** > In ***Key algorithm*** leave it as the default > Choose ***Request***.
 - While the certificate in creating, we can click into it and choose ***Create DNS records in Amazon Route 53*** 
