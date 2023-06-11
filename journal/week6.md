@@ -1,6 +1,9 @@
 # Week 6 — Deploying Containers with ECS and Fargate
 
 What are Health checks?
+What is AWS ECR and its benefits?
+What is AWS ECS, Fargate and what are its benefits?
+What is AWS Route 53?
 
 ### AWS ECS Launch types 
 1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
