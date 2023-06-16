@@ -243,6 +243,10 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 - To verify that it was successfully installed, type:
 ``` session-manager-plugin```
 
+- Then in ```gitpod.yml``` add the follwoing line to make sure that its set up installed everytime we launch the environment:
+```
+```
+
 #### Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
@@ -309,7 +313,8 @@ echo $DEFAULT_SUBNET_IDS
 aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
 ```
 
-- Access the ECS cluster container using the bash terminal to view the status of the cluster 
+#### Create a Sessions Manager script that will allow 
+- We can access the ECS cluster container using the bash terminal to view the status of the cluster tasks and to check to make sure that the container is healthy.:
 ```
 aws ecs execute-command \
   --region $AWS_REGION \
@@ -319,6 +324,20 @@ aws ecs execute-command \
   --command "/bin/bash" \
   --interactive
 ```
+
+- Alternatively, we can create a Sessions Manager script that will allow us to connect to our backend bash using a script .
+- Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service]()
+- Change the permissions on the file in the terminal :
+```
+chmod u+x ./bin/ecs/connect-to-backend-service
+```
+
+- Execute the command in the terminal to connect to the container:
+```
+./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
+```
+
+- 
 
 #### Create an ECS cluster with service connect from the CLI
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
