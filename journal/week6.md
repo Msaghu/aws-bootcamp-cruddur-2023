@@ -240,16 +240,8 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 - To verify that it was successfully installed, type:
 ``` session-manager-plugin```
 
-- Access the ECS bash to view the status of the cluster 
-```
-aws ecs execute-command \
-  --region $AWS_REGION \
-  --cluster cruddur \
-  --task <task ARN> \
-  --conatiner backend-flask \
-  --command "/bin/bash" \
-  --interactive
-```
+##### Create a Load Balancer via the console
+- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
 ### Step 13: Prepare our Frontend Container to be deployed to Fargate
 
@@ -299,11 +291,20 @@ echo $DEFAULT_SUBNET_IDS
   }
   ```
 
+##### To access the cluster from our CLI/terminal
+- Access the ECS bash to view the status of the cluster 
+```
+aws ecs execute-command \
+  --region $AWS_REGION \
+  --cluster cruddur \
+  --task <task ARN> \
+  --conatiner backend-flask \
+  --command "/bin/bash" \
+  --interactive
+```
+
 ##### Create an ECS cluster with service connect from the CLI
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
-
-##### Create a Load Balancer via the console
-- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
 ### Step 15: Create our ECS cluster for the backend-flask
 ##### Build Frontend image locally 
