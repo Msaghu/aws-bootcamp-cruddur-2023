@@ -449,6 +449,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 ## Additional homework challenges
 1. Create a hosted zone with the AWS CLI
 2. Make a b ash script that automatically gives the VPC ID and SuBNET IDS.
+3. vfggjhn
 
 
 ## Aditional links 
