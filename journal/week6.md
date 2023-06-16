@@ -187,7 +187,7 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 ### Step 11: Create a task definition file(this defines how we provision an application)
 - A task definition is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
-{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}
+***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
 
 - Register the Task definition for the backend-flask
 ```
@@ -229,6 +229,16 @@ aws ec2 authorize-security-group-ingress \
   --cidr 0.0.0.0/0
 ```
 
+##### Create Subnets
+-  to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
+```
+export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
+ --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
+ --query 'Subnets[*].SubnetId' \
+ --output json | jq -r 'join(",")')
+echo $DEFAULT_SUBNET_IDS
+```
+
 ##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
 - In the terminal, paste in and enter:
 ```
@@ -253,15 +263,7 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 Desired tasks ```1``` 
 
 ##### Option 2: Create our ECS cluster via the CLI 
--  to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
-```
-export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
- --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
- --query 'Subnets[*].SubnetId' \
- --output json | jq -r 'join(",")')
-echo $DEFAULT_SUBNET_IDS
-```
-- create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
+- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
 ```
 {
     "cluster": "cruddur",
@@ -290,6 +292,10 @@ echo $DEFAULT_SUBNET_IDS
     "taskDefinition": "backend-flask"
   }
   ```
+
+- Get the ```securityGroup IDs``` and the ```subnet IDs``` from the ***AWS EC2 > Network and Security > Security Groups*** console or
+- To get the IDs of all security groups with a name matching exactly a specified string (default in this example) without specifying a VPC ID, use the following:
+``` aws ec2 describe-security-groups --filter Name=group-name,Values=default --output json | jq -r .SecurityGroups[].GroupId ```
 
 ##### To access the cluster from our CLI/terminal
 - Access the ECS bash to view the status of the cluster 
