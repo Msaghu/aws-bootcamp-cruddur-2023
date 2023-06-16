@@ -197,7 +197,7 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 
 # Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
 ### Step 12: Prepare our backend container to be deployed to Fargate
-##### Creating a VPC 
+##### Creating a default VPC 
 (All these commands should be run in workspace/aws-bootcamp-cruddur)
 - Create a default VPC via the terminal/CLI, i.e find the default VPC and return its VPC ID if True.
 ```
@@ -227,16 +227,6 @@ aws ec2 authorize-security-group-ingress \
   --protocol tcp \
   --port 80 \
   --cidr 0.0.0.0/0
-```
-
-##### Create Subnets
--  to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
-```
-export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
- --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
- --query 'Subnets[*].SubnetId' \
- --output json | jq -r 'join(",")')
-echo $DEFAULT_SUBNET_IDS
 ```
 
 ##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
@@ -293,9 +283,23 @@ Desired tasks ```1```
   }
   ```
 
-- Get the ```securityGroup IDs``` and the ```subnet IDs``` from the ***AWS EC2 > Network and Security > Security Groups*** console or
-- To get the IDs of all security groups with a name matching exactly a specified string (default in this example) without specifying a VPC ID, use the following:
-``` aws ec2 describe-security-groups --filter Name=group-name,Values=default --output json | jq -r .SecurityGroups[].GroupId ```
+- Get the ```securityGroup IDs``` and the ```subnet IDs``` from the ***AWS EC2 > Network and Security > Security Groups*** console and paste into the code above or use the CLI
+- To get VPC ID
+```
+export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
+--filters "Name=isDefault, Values=true" \
+--query "Vpcs[0].VpcId" \
+--output text)
+echo $DEFAULT_VPC_ID
+```
+-  To fill in the ***subnet IDs*** above run the following in the CLI and copy the values(optionally you can look in the console)
+```
+export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
+ --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
+ --query 'Subnets[*].SubnetId' \
+ --output json | jq -r 'join(",")')
+echo $DEFAULT_SUBNET_IDS
+```
 
 ##### To access the cluster from our CLI/terminal
 - Access the ECS bash to view the status of the cluster 
@@ -416,6 +420,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ## Additional homework challenges
 1. Create a hosted zone with the AWS CLI
+2. Make a b ash script that automatically gives the VPC ID and SuBNET IDS.
 
 
 ## Aditional links 
