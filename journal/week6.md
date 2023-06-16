@@ -28,7 +28,9 @@ What is AWS Route 53?
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
 # Create an Elastic Container Repository (ECR) 
+
 ### Step 1: Create an Elastic Container Repository(ECR) via the CLI
+A repository is where you store your Docker or Open Container Initiative (OCI) images in Amazon ECR. Each time you push or pull an image from Amazon ECR, you specify the repository and the registry location which informs where to push the image to or where to pull it from.
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 - In AWS ECR, we can create a private repository uasing the following steps:
 - AMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
@@ -57,7 +59,7 @@ echo $ECR_PYTHON_URL
 # Push our container images to ECR
 ### Step 2: Push a Python Image to the container we created above for the backend 
 ##### Pull Python Image from Dockerhub
-- Pull the python image from Dockerhub to our local environment , then confrim that its downloaded/pulled
+- Pull the python image from Dockerhub to our local environment , then confirm that its downloaded/pulled
 ```
 docker pull python:3.10-slim-buster 
 docker images
@@ -408,3 +410,6 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 ## Additional homework challenges
 1. Create a hosted zone with the AWS CLI
 
+
+## Aditional links 
+1. [Security in AWS ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
