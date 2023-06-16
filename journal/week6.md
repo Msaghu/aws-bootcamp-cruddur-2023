@@ -222,6 +222,8 @@ export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
 echo $CRUD_SERVICE_SG
 ```
 
+- Edit the inbound rules for an existing security group, and in the CLI, add in a new rule to allow access from PostgreSQL and add in a source from the CRUD_SERVICE_SG and name it as CruddurServices.
+
 #### Allow HTTP requests
 - Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
 ```
