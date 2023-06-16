@@ -283,6 +283,14 @@ Desired tasks ```1```
     "desiredCount": 1,
     "enableECSManagedTags": true,
     "enableExecuteCommand": true,
+    "LoadBalancers": [
+      {
+          "targetGroupArn": "copy in the targetgrouparn for the backend",
+          "LoadBalancerName": "copy in the loadbalancername",
+          "containerName": "backend-flask",
+          "containerPort": 4567
+       }
+     ],
     "networkConfiguration": {
       "awsvpcConfiguration": {
         "assignPublicIp": "ENABLED",
