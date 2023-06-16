@@ -228,7 +228,7 @@ echo $CRUD_SERVICE_SG
 aws ec2 authorize-security-group-ingress \
   --group-id $CRUD_SERVICE_SG \
   --protocol tcp \
-  --port 80 \
+  --port 4567 \
   --cidr 0.0.0.0/0
 ```
 
