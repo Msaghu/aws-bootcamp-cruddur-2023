@@ -184,7 +184,17 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 
 # Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
 ### Step 12: For the Backend Application
+- Install 
 ### Step 12: For the Frontend Application
+```
+aws ecs execute-command \
+  --region $AWS_REGION \
+  --cluster cruddur \
+  --task <taskID> \
+  -- container backend-flask \
+  --command "/bin/bash" \
+  --interactive
+```
 
 # Launch our Fargate services via CLI
 ### Step 12: Prepare containers to be deployed to Fargate
@@ -212,16 +222,17 @@ echo $CRUD_SERVICE_SG
 - Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
 Desired tasks ```1``` 
 
-- Install sessions manager plugin for Linux
+##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
+- In the terminal, paste in and enter:
 ```
 curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
 ```
 
-- Then
+- Then:
 ```sudo dpkg -i session-manager-plugin.deb```
-- To verify that it was successfully installed
+- To verify that it was successfully installed, type:
 ``` session-manager-plugin```
-- 
+
 - Access the ECS bash to view the status of the cluster 
 ```
 aws ecs execute-command \
