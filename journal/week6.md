@@ -211,19 +211,6 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 echo $DEFAULT_VPC_ID
 ```
 
-#### Creating a Security Group
-- Create a security group via the terminal/CLI
-```
-export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
-  --group-name "crud-srv-sg" \
-  --description "Security group for Cruddur services on ECS" \
-  --vpc-id $DEFAULT_VPC_ID \
-  --query "GroupId" --output text)
-echo $CRUD_SERVICE_SG
-```
-
-- Edit the inbound rules for an existing security group, and in the CLI, add in a new rule to allow access from PostgreSQL and add in a source from the CRUD_SERVICE_SG and name it as CruddurServices.
-
 #### Allow HTTP requests
 - Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
 ```
@@ -249,8 +236,27 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 ```
 ```
 
+#### Creating a Security Group
+- Create a security group via the terminal/CLI
+```
+export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
+  --group-name "crud-srv-sg" \
+  --description "Security group for Cruddur services on ECS" \
+  --vpc-id $DEFAULT_VPC_ID \
+  --query "GroupId" --output text)
+echo $CRUD_SERVICE_SG
+```
+
+- Edit the inbound rules for another existing security group, and in the CLI, add in a new rule to allow access from PostgreSQL and add in a source from the CRUD_SERVICE_SG and name it as CruddurServices.
+
 #### Create a Load Balancer via the console
-- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
+- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer``` > Choose ```Create```
+- In Basic configuration add the Load balancer name ```cruddur-alb``` > For scheme choose ```Internet-facing``` > For IP address type, choose ```IPv4``` > iN network mapping, leave the ```default VPC``` > Map to all our subnets so choose them all > 
+- Create a NEW Security group, for security group name ```cruddur-alb- sg``` > For description ```cruddur-alb- sg``` > Leave VPC as default > In inbound rules, allow traffic from HTTP and HTTPS anywhere
+- Copy its Security group ID
+- We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we created above, from ports 4567.
+
+#### Create a Load Balancer via the console
 
 ### Step 13: Prepare our Frontend Container to be deployed to Fargate
 
@@ -315,7 +321,7 @@ echo $DEFAULT_SUBNET_IDS
 aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
 ```
 
-#### Create a Sessions Manager script that will allow 
+#### Create a Sessions Manager script that will allow us to access our container
 - We can access the ECS cluster container using the bash terminal to view the status of the cluster tasks and to check to make sure that the container is healthy.:
 ```
 aws ecs execute-command \
@@ -339,10 +345,46 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 ./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
 ```
 
--  
-
 #### Create an ECS cluster with service connect from the CLI
-- create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
+- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
+```
+{
+  "cluster": "cruddur",
+  "launchType": "FARGATE",
+  "desiredCount": 1,
+  "enableECSManagedTags": true,
+  "enableExecuteCommand": true,
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "assignPublicIp": "ENABLED",
+      "securityGroups": [
+        "sg-04ca5ebd69e0aec6f"
+      ],
+      "subnets": [
+        "subnet-0462b87709683ccaa",
+        "subnet-066a53dd88d557e05",
+        "subnet-021a6adafb79249e3"
+      ]
+    }
+  },
+  "propagateTags": "SERVICE",
+  "serviceName": "backend-flask",
+  "taskDefinition": "backend-flask",
+  "serviceConnectConfiguration": {
+    "enabled": true,
+    "namespace": "cruddur",
+    "services": [
+      {
+        "portName": "backend-flask",
+        "discoveryName": "backend-flask",
+        "clientAliases": [{"port": 4567}]
+      }
+    ]
+  }
+}
+```
+
+- 
 
 ### Step 15: Create our ECS cluster for the backend-flask
 #### Build Frontend image locally 
@@ -448,8 +490,8 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ## Additional homework challenges
 1. Create a hosted zone with the AWS CLI
-2. Make a b ash script that automatically gives the VPC ID and SuBNET IDS.
-3. vfggjhn
+2. Make a bash script that automatically gives the VPC ID and SuBNET IDS.
+3. Create a Load Balancer using the CLI
 
 
 ## Aditional links 
