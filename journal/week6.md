@@ -132,6 +132,8 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
+***{The CruddurServiceExecutionPolicy must have the following which can be created inline via the console or added as lined to the JSON policy document:
+ Create an ECR Get authorization token, }***
 
 ### Step 7: Create and attach a CloudWatchFullAccess policy 
 - We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
@@ -163,13 +165,13 @@ aws iam put-role-policy \
 ```
 
 ### Step 9: Create CloudWatch FullAccess policies to the SSM Task Role
-- Attach an existing AWS policy, ```CloudWatch FullAccess``` via the CLI.
+- Attach an existing AWS policy, ```CloudWatch FullAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurTaskRole
 ```
 
 ### Step 10: Create a write policy for the XRAY Daemon to the SSM Task Role
-- Attach an existing AWS policy, ```CloudWatch FullAccess``` to the CruddurTaskRole via the CLI.
+- Attach an existing AWS policy, ```AWSXRayDaemonWriteAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
@@ -187,7 +189,8 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 # Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
 ### Step 12: Prepare our backend container to be deployed to Fargate
 ##### Creating a VPC 
-- Create a default VPC via the terminal/CLI
+(All these commands should be run in workspace/aws-bootcamp-cruddur)
+- Create a default VPC via the terminal/CLI, i.e find the default VPC and return its VPC ID if True.
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --filters "Name=isDefault, Values=true" \
@@ -205,6 +208,16 @@ export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
   --vpc-id $DEFAULT_VPC_ID \
   --query "GroupId" --output text)
 echo $CRUD_SERVICE_SG
+```
+
+##### Allow HTTP requests
+- Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
+```
+aws ec2 authorize-security-group-ingress \
+  --group-id $CRUD_SERVICE_SG \
+  --protocol tcp \
+  --port 80 \
+  --cidr 0.0.0.0/0
 ```
 
 ##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
@@ -229,26 +242,16 @@ aws ecs execute-command \
   --interactive
 ```
 
-### Step 12: Prepare our Frontend Conatiner to be deployed to Fargate
+### Step 13: Prepare our Frontend Conatiner to be deployed to Fargate
 
 
 # Launch our ECS Fargate container via the CLI
-### Step 13: Options for creating our ECS cluster for the backend-flask
+### Step 14: Options for creating our ECS cluster for the backend-flask
 ##### Option 1: Create our ECS cluster via the console 
-
 - Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
 Desired tasks ```1``` 
 
 ##### Option 2: Create our ECS cluster via the CLI 
-- OR the default VPC
-```
-export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
---filters "Name=isDefault, Values=true" \
---query "Vpcs[0].VpcId" \
---output text)
-echo $DEFAULT_VPC_ID
-```
-
 -  to fill in the subnet section below run the following in the CLI and copy the values(optionally you can look in the console)
 ```
 export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
@@ -293,7 +296,7 @@ echo $DEFAULT_SUBNET_IDS
 ##### Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
-### Step 13: Create our ECS cluster for the backend-flask
+### Step 15: Create our ECS cluster for the backend-flask
 ##### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
