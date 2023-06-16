@@ -337,7 +337,7 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 ./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
 ```
 
-- 
+-  
 
 #### Create an ECS cluster with service connect from the CLI
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
