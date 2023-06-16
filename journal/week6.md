@@ -36,20 +36,20 @@ A repository is where you store your Docker or Open Container Initiative (OCI) i
 - AMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
 - Now let's do this via the AWS CLI in Gitpod. 
 
-##### Create a Private Repository via the CLI
+#### Create a Private Repository via the CLI
 - To create a repository ```cruddur-python``` in ECR:
 ```
 aws ecr create-repository \
   --repository-name cruddur-python \
   --image-tag-mutability MUTABLE
   ```
-##### Log in to ECR via CLI
+#### Log in to ECR via CLI
  - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
  
  ```
  aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
-##### Set URL
+#### Set URL
 - We will now set path for the address that will map to our ECR IP
 ```
 export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
@@ -58,20 +58,20 @@ echo $ECR_PYTHON_URL
 
 # Push our container images to ECR
 ### Step 2: Push a Python Image to the container we created above for the backend 
-##### Pull Python Image from Dockerhub
+#### Pull Python Image from Dockerhub
 - Pull the python image from Dockerhub to our local environment , then confirm that its downloaded/pulled
 ```
 docker pull python:3.10-slim-buster 
 docker images
 ```
-##### Tag the Python image pulled above
+#### Tag the Python image pulled above
 ```docker tag python:3.10-slim-buster $ECR_PYTHON_URL:3.10-slim-buster```
-##### Push the Python image to ECR
+#### Push the Python image to ECR
 ```docker push $ECR_PYTHON_URL:3.10-slim-buster```
-##### Prepare our Flask App to use the python image from ECR
+#### Prepare our Flask App to use the python image from ECR
 - We will copy URI from the ECR python image into our Dockerfile so that we now use the image stored in ECR i.e the first line of the Dockerfile:
 ```nbjhg```
-##### Docker compose up
+#### Docker compose up
 - Run docker compose up for the backend and the Database.
 - To test that the application is now running, launch the backend service then paste in ```/api/health-check```, should return : 
 ``` { success: True } ```
@@ -83,20 +83,23 @@ docker images
   --image-tag-mutability MUTABLE
 ```
 
-##### Set URL
+#### Set URL
 ```
 export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
 echo $ECR_BACKEND_FLASK_URL
 ```
-  ##### Build image
+
+#### Build image
  ```
  docker build -t backend-flask .
  ```
-  ##### Tag Image
+ 
+#### Tag Image
  ```
  docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
  ```
-  ##### Push image
+
+#### Push image
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
@@ -197,7 +200,7 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 
 # Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
 ### Step 12: Prepare our backend container to be deployed to Fargate
-##### Creating a default VPC 
+#### Creating a default VPC 
 (All these commands should be run in workspace/aws-bootcamp-cruddur)
 - Create a default VPC via the terminal/CLI, i.e find the default VPC and return its VPC ID if True.
 ```
@@ -208,7 +211,7 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 echo $DEFAULT_VPC_ID
 ```
 
-##### Creating a Security Group
+#### Creating a Security Group
 - Create a security group via the terminal/CLI
 ```
 export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
@@ -219,7 +222,7 @@ export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
 echo $CRUD_SERVICE_SG
 ```
 
-##### Allow HTTP requests
+#### Allow HTTP requests
 - Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
 ```
 aws ec2 authorize-security-group-ingress \
@@ -229,7 +232,7 @@ aws ec2 authorize-security-group-ingress \
   --cidr 0.0.0.0/0
 ```
 
-##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
+#### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
 - In the terminal, paste in and enter:
 ```
 curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
@@ -240,7 +243,7 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 - To verify that it was successfully installed, type:
 ``` session-manager-plugin```
 
-##### Create a Load Balancer via the console
+#### Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer```
 
 ### Step 13: Prepare our Frontend Container to be deployed to Fargate
@@ -248,11 +251,11 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 
 # Launch our ECS Fargate container via the CLI
 ### Step 14: Options for creating our ECS cluster for the backend-flask
-##### Option 1: Create our ECS cluster via the console 
+#### Option 1: Create our ECS cluster via the console 
 - Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
 Desired tasks ```1``` 
 
-##### Option 2: Create our ECS cluster via the CLI 
+#### Option 2: Create our ECS cluster via the CLI 
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
 ```
 {
@@ -317,11 +320,11 @@ aws ecs execute-command \
   --interactive
 ```
 
-##### Create an ECS cluster with service connect from the CLI
+#### Create an ECS cluster with service connect from the CLI
 - create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
 
 ### Step 15: Create our ECS cluster for the backend-flask
-##### Build Frontend image locally 
+#### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
 docker build \
@@ -337,13 +340,13 @@ docker build \
 - Ispect the container using
 ``` docker inspect <container id>```
 
-##### Connect to the Frontend ECS cluster container
+#### Connect to the Frontend ECS cluster container
 - Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
 - In the terminal, run ```chmod u+x ./bin/ecs/connect-to-frontend-react-js```.
 - Then to connect run ```./bin/ecs/connect-to-service <task-id/arn number of the service ```
 - Test curl localhost:3000
 
-##### Create a task definition for the Front-end container
+#### Create a task definition for the Front-end container
 - To create a task in the container, we will:
 - Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
 - In the terminal, run ```chmod u+x ./bin/ecs/frontend-react-js.json```.
@@ -351,23 +354,23 @@ docker build \
 ```
 ```
 
-##### Register Task definition for the Front-end container
+#### Register Task definition for the Front-end container
 
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
 ```
 
-##### Create our ECS cluster via the console for the Frontend-react
+#### Create our ECS cluster via the console for the Frontend-react
 - Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
 ```
 aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
 ```
 - Login AWS ECS clusters to make sure that its been launched.
 
-##### Create a Security group that will allow requests to the Frontend container form the Load Balancer
+#### Create a Security group that will allow requests to the Frontend container form the Load Balancer
 - In the AWS ECS console, in the front-end-react Networking tab, ```Security Groups``` > Choose ```Edit inbound rule``` > Add in a port range ```3000``` for the frontend Load Balancer > Add in a port range ```4567``` for the backend Load Balancer
 
-##### Run the Frontend image
+#### Run the Frontend image
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
 
