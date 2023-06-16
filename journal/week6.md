@@ -132,8 +132,14 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
-***{The CruddurServiceExecutionPolicy must have the following which can be created inline via the console or added as lined to the JSON policy document:
- Create an ECR Get authorization token, }***
+***{The CruddurServiceExecutionPolicy must also have the following rules which can be created inline via the console or added as lined to the JSON policy document:
+ ecr:GetAuthorizationToken,
+ ecr:BatchCheckLayerAvailability,
+ ecr:GetDownloadUrlForLayer,
+ ecr:BatchGetImage,
+ logs:CreateLogStream,
+ logs:PutLogEvents
+ }***
 
 ### Step 7: Create and attach a CloudWatchFullAccess policy 
 - We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
@@ -177,6 +183,7 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 ```
 
 ### Step 11: Create a task definition file(this defines how we provision an application)
+- A task definition is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
 {Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}
 
@@ -242,7 +249,7 @@ aws ecs execute-command \
   --interactive
 ```
 
-### Step 13: Prepare our Frontend Conatiner to be deployed to Fargate
+### Step 13: Prepare our Frontend Container to be deployed to Fargate
 
 
 # Launch our ECS Fargate container via the CLI
