@@ -98,6 +98,7 @@ echo $ECR_BACKEND_FLASK_URL
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
+ 
 ### Step 4: Push a React Image to the container we created above for the frontend
 
 
@@ -132,7 +133,7 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
 
-### Step 7: Create a CloudWatchFullAccess policy 
+### Step 7: Create and attach a CloudWatchFullAccess policy 
 - We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
@@ -140,11 +141,12 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/cloudwatch-fullaccess-policy.json
 ```
-OR you can also do this
+OR you can also do this(if you dont want to create the JSON policy document THEN attach it to the file).
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurServiceExecutionRole
 ```
-### Step 8: Create a Sessions Manager role and attach a policy 
+
+### Step 8: Create a CruddurTaskRole and attach a Sessions Manager policy 
 - In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \
@@ -167,40 +169,25 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAc
 ```
 
 ### Step 10: Create a write policy for the XRAY Daemon to the SSM Task Role
-- Attach an existing AWS policy, ```CloudWatch FullAccess``` via the CLI.
+- Attach an existing AWS policy, ```CloudWatch FullAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
 
 ### Step 11: Create a task definition file(this defines how we provision an application)
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
-{Make sure to change the values in the file as per your account}
+{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}
 
 - Register the Task definition for the backend-flask
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/backend-flask.json
 ```
-- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created
+- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the file to ECS to use the newer file)
 
 # Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
-### Step 12: For the Backend Application
-- Install 
-### Step 12: For the Frontend Application
-```
-aws ecs execute-command \
-  --region $AWS_REGION \
-  --cluster cruddur \
-  --task <taskID> \
-  -- container backend-flask \
-  --command "/bin/bash" \
-  --interactive
-```
-
-# Launch our Fargate services via CLI
-### Step 12: Prepare containers to be deployed to Fargate
-### Step 13: Create our ECS cluster for the backend-flask
-##### Create our ECS cluster via the console (minute 1:32:16)
-- Create a default VPC via the terminal
+### Step 12: Prepare our backend container to be deployed to Fargate
+##### Creating a VPC 
+- Create a default VPC via the terminal/CLI
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --filters "Name=isDefault, Values=true" \
@@ -209,7 +196,8 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 echo $DEFAULT_VPC_ID
 ```
 
-- Create a security group via the CLI
+##### Creating a Security Group
+- Create a security group via the terminal/CLI
 ```
 export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
   --group-name "crud-srv-sg" \
@@ -218,9 +206,6 @@ export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
   --query "GroupId" --output text)
 echo $CRUD_SERVICE_SG
 ```
-
-- Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
-Desired tasks ```1``` 
 
 ##### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
 - In the terminal, paste in and enter:
@@ -244,7 +229,17 @@ aws ecs execute-command \
   --interactive
 ```
 
-## Create our ECS cluster via the CLI 
+### Step 12: Prepare our Frontend Conatiner to be deployed to Fargate
+
+
+# Launch our ECS Fargate container via the CLI
+### Step 13: Options for creating our ECS cluster for the backend-flask
+##### Option 1: Create our ECS cluster via the console 
+
+- Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
+Desired tasks ```1``` 
+
+##### Option 2: Create our ECS cluster via the CLI 
 - OR the default VPC
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
