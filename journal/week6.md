@@ -252,13 +252,20 @@ echo $CRUD_SERVICE_SG
 #### Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer``` > Choose ```Create```
 - In Basic configuration add the Load balancer name ```cruddur-alb``` > For scheme choose ```Internet-facing``` > For IP address type, choose ```IPv4``` > iN network mapping, leave the ```default VPC``` > Map to all our subnets so choose them all > 
-- Create a NEW Security group, for security group name ```cruddur-alb- sg``` > For description ```cruddur-alb- sg``` > Leave VPC as default > In inbound rules, allow traffic from HTTP and HTTPS anywhere
+***Create a NEW Security group, for security group name ```cruddur-alb- sg``` > For description ```cruddur-alb- sg``` > Leave VPC as default > In inbound rules, allow traffic from HTTP and HTTPS anywhere***
 - Copy its Security group ID
-- We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we created above, from ports 4567.
+***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we created above, from ports 4567.}***
+- In Security groups, choose the Load balancer we created above in ```cruddur-alb- sg``` only.
+***Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-backend-flask-tg``` > Listen on port 4567 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create***
+- On Listeners and routing choose to listen on HTTP port 3000 
+- Choose ```Create a Load Balancer```
 
 #### Create a Load Balancer via the console
 
 ### Step 13: Prepare our Frontend Container to be deployed to Fargate
+#### Create a Target group for frontend to the Load Balancer
+- Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
+- On Listeners and routing choose to listen on HTTP port 3000 
 
 
 # Launch our ECS Fargate container via the CLI
