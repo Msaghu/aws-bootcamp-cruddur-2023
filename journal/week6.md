@@ -286,7 +286,6 @@ Desired tasks ```1```
     "LoadBalancers": [
       {
           "targetGroupArn": "copy in the targetgrouparn for the backend",
-          "LoadBalancerName": "copy in the loadbalancername",
           "containerName": "backend-flask",
           "containerPort": 4567
        }
@@ -399,9 +398,7 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 }
 ```
 
-- 
-
-### Step 15: Create our ECS cluster for the backend-flask
+### Step 15: Create our ECS cluster for the Frontend-flask
 #### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
@@ -424,7 +421,7 @@ docker build \
 - Then to connect run ```./bin/ecs/connect-to-service <task-id/arn number of the service ```
 - Test curl localhost:3000
 
-#### Create a task definition for the Front-end container
+#### Create a task definition file for the Front-end container
 - To create a task in the container, we will:
 - Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
 - In the terminal, run ```chmod u+x ./bin/ecs/frontend-react-js.json```.
