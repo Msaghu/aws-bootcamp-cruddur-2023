@@ -301,14 +301,18 @@ export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
 echo $DEFAULT_SUBNET_IDS
 ```
 
-##### To access the cluster from our CLI/terminal
-- Access the ECS bash to view the status of the cluster 
+- In the terminal,paste and run:
+```
+aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
+```
+
+- Access the ECS cluster container using the bash terminal to view the status of the cluster 
 ```
 aws ecs execute-command \
   --region $AWS_REGION \
   --cluster cruddur \
-  --task <task ARN> \
-  --conatiner backend-flask \
+  --task <task ARN ID> \
+  --container backend-flask \
   --command "/bin/bash" \
   --interactive
 ```
