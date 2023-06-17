@@ -402,8 +402,8 @@ aws ecr create-repository \
 #### Set URL
 - We will now set path for the address that will map to our ECR IP
 ```
-export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
-echo $ECR_PYTHON_URL
+export ECR_FRONTEND_REACT_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/frontend-react-js"
+echo $ECR_FRONTEND_REACT_URL
 ```
 
 #### Log in to ECR via CLI
