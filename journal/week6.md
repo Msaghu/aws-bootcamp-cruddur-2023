@@ -1,9 +1,9 @@
 # Week 6 — Deploying Containers with ECS and Fargate
 
-What are Health checks?
-What is AWS ECR and its benefits?
-What is AWS ECS, Fargate and what are its benefits?
-What is AWS Route 53?
+- What are Health checks?
+- What is AWS ECR and its benefits?
+- What is AWS ECS, Fargate and what are its benefits?
+- What is AWS Route 53?
 
 ### AWS ECS Launch types 
 1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
@@ -28,7 +28,6 @@ What is AWS Route 53?
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
 # Create an Elastic Container Repository (ECR) 
-
 ### Step 1: Create an Elastic Container Repository(ECR) via the CLI
 A repository is where you store your Docker or Open Container Initiative (OCI) images in Amazon ECR. Each time you push or pull an image from Amazon ECR, you specify the repository and the registry location which informs where to push the image to or where to pull it from.
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
@@ -56,6 +55,7 @@ export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 echo $ECR_PYTHON_URL
 ```
 
+# FOR THE BACKEND
 # Push our container images to ECR
 ### Step 2: Push a Python Image to the container we created above for the backend 
 #### Pull Python Image from Dockerhub
@@ -198,7 +198,7 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 ```
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the file to ECS to use the newer file)
 
-# Create a Load Balancer, VPCs and Security groups for the Front-end and Baceknd services 
+# Create a Load Balancer, VPCs and Security groups for the Backend services 
 ### Step 12: Prepare our backend container to be deployed to Fargate
 #### Creating a default VPC 
 (All these commands should be run in workspace/aws-bootcamp-cruddur)
@@ -390,6 +390,7 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 }
 ```
 
+# FOR THE FRONTEND
 # Step 15: Create our ECS cluster for the Frontend-flask
 #### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
@@ -460,6 +461,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 3. Of the RDS instance
 
 {Before starting these stepos, make sure to start your RDS instance in AWS}
+
 #### Create a Load Balancer via the console
 
 
