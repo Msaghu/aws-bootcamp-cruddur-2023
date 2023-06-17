@@ -260,14 +260,6 @@ echo $CRUD_SERVICE_SG
 - On Listeners and routing choose to listen on HTTP port 3000 
 - Choose ```Create a Load Balancer```
 
-#### Create a Load Balancer via the console
-
-### Step 13: Prepare our Frontend Container to be deployed to Fargate
-#### Create a Target group for frontend to the Load Balancer
-- Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
-- On Listeners and routing choose to listen on HTTP port 3000 
-
-
 # Launch our ECS Fargate container via the CLI
 ### Step 14: Options for creating our ECS cluster for the backend-flask
 #### Option 1: Create our ECS cluster via the console 
@@ -398,7 +390,7 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 }
 ```
 
-### Step 15: Create our ECS cluster for the Frontend-flask
+# Step 15: Create our ECS cluster for the Frontend-flask
 #### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
@@ -415,22 +407,33 @@ docker build \
 - Ispect the container using
 ``` docker inspect <container id>```
 
+### Step : Prepare our Frontend Container to be deployed to Fargate
+#### Create a Target group for frontend to the Load Balancer
+- Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
+- On Listeners and routing choose to listen on HTTP port 3000 
+
 #### Connect to the Frontend ECS cluster container
 - Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
-- In the terminal, run ```chmod u+x ./bin/ecs/connect-to-frontend-react-js```.
-- Then to connect run ```./bin/ecs/connect-to-service <task-id/arn number of the service ```
+- In the terminal, run 
+```
+chmod u+x ./bin/ecs/connect-to-frontend-react-js
+```
+- Then to connect run 
+```
+./bin/ecs/connect-to-service <task-id/arn number of the service
+```
 - Test curl localhost:3000
 
 #### Create a task definition file for the Front-end container
 - To create a task in the container, we will:
 - Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
-- In the terminal, run ```chmod u+x ./bin/ecs/frontend-react-js.json```.
+- In the terminal, run 
+```chmod u+x ./bin/ecs/frontend-react-js.json```
 - In task-defintion, make sure to add in the ```health-check``` in the json file, at the container level:
 ```
 ```
 
 #### Register Task definition for the Front-end container
-
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
 ```
@@ -457,6 +460,9 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 3. Of the RDS instance
 
 {Before starting these stepos, make sure to start your RDS instance in AWS}
+#### Create a Load Balancer via the console
+
+
 
 ### Step 1: Perform health checks on our RDS instance
 - In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
