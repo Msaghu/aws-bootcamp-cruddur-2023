@@ -27,6 +27,7 @@
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
 
+# FOR THE BACKEND
 # Create an Elastic Container Repository (ECR) 
 ### Step 1: Create an Elastic Container Repository(ECR) via the CLI
 A repository is where you store your Docker or Open Container Initiative (OCI) images in Amazon ECR. Each time you push or pull an image from Amazon ECR, you specify the repository and the registry location which informs where to push the image to or where to pull it from.
@@ -48,6 +49,7 @@ aws ecr create-repository \
  ```
  aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
+ 
 #### Set URL
 - We will now set path for the address that will map to our ECR IP
 ```
@@ -55,7 +57,6 @@ export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 echo $ECR_PYTHON_URL
 ```
 
-# FOR THE BACKEND
 # Push our container images to ECR
 ### Step 2: Push a Python Image to the container we created above for the backend 
 #### Pull Python Image from Dockerhub
@@ -103,9 +104,6 @@ echo $ECR_BACKEND_FLASK_URL
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
- 
-### Step 4: Push a React Image to the container we created above for the frontend
-
 
 # Write an ECS Task Definition file for Fargate
 ### Step 5: Create Task and Execution Roles for Task definition
@@ -391,7 +389,31 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 ```
 
 # FOR THE FRONTEND
-# Step 15: Create our ECS cluster for the Frontend-flask
+# Write an ECS Task Definition file for Fargate
+### Step 1: Create a Task definition file 
+#### Create a Production Dockerfile 
+- Create a new file using node, ```Dockerfile.prod``` in [frontend-react-js/Dockerfile.prod]().
+
+#### Create a Task definition file for the Front-end container
+- To create a task in the container, we will:
+- Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
+- In the terminal, run 
+```chmod u+x ./bin/ecs/frontend-react-js.json```
+- In task-defintion, make sure to add in the ```health-check``` in the json file, at the container level so that the file looks like this:
+```
+```
+
+
+#### Register Task definition for the Front-end container
+```
+aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
+``` 
+
+#### Create an nginx file
+- In ```frontend-react.js``` , create a file [frontend-react.js/nginx.conf]()
+- In the frontend-react folder, run ```npm run build```.
+
+## Step 2: Create our ECS cluster for the Frontend-flask
 #### Build Frontend image locally 
 - Switch to ```frontend-react``` and paste in the following code:
 ```
@@ -405,9 +427,34 @@ docker build \
 -f Dockerfile.prod \
 .
 ```
-- Ispect the container using
+
+- Inspect the container using
 ``` docker inspect <container id>```
 
+# Create an Elastic Container Repository (ECR) 
+### Step 1: Create an Elastic Container Repository(ECR) via the CLI
+#### Create a Private Repository via the CLI
+- To create a repository ```frontend-react-js``` in ECR:
+```
+aws ecr create-repository \
+  --repository-name frontend-react-js \
+  --image-tag-mutability MUTABLE
+  ```
+#### Log in to ECR via CLI
+ - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
+ 
+ ```
+ aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+ ```
+ 
+#### Set URL
+- We will now set path for the address that will map to our ECR IP
+```
+export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/cruddur-python"
+echo $ECR_PYTHON_URL
+```
+
+### Step 4: Push a React Image to the container we created above for the frontend
 ### Step : Prepare our Frontend Container to be deployed to Fargate
 #### Create a Target group for frontend to the Load Balancer
 - Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
@@ -425,19 +472,6 @@ chmod u+x ./bin/ecs/connect-to-frontend-react-js
 ```
 - Test curl localhost:3000
 
-#### Create a task definition file for the Front-end container
-- To create a task in the container, we will:
-- Create a new file, ```frontend-react-js.json``` in ``aws-task-definitions```, [backend-flask/bin/ecs/frontend-react-js.json]().
-- In the terminal, run 
-```chmod u+x ./bin/ecs/frontend-react-js.json```
-- In task-defintion, make sure to add in the ```health-check``` in the json file, at the container level:
-```
-```
-
-#### Register Task definition for the Front-end container
-```
-aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
-```
 
 #### Create our ECS cluster via the console for the Frontend-react
 - Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
