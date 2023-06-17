@@ -454,21 +454,13 @@ docker run --rm -p 3000:3000 -it frontend-react-js
 #### Create a Production Dockerfile 
 - Create a new file using node, ```Dockerfile.prod``` in [frontend-react-js/Dockerfile.prod]().
 
-
-
-- Register the Task definition for the backend-flask
-```
-aws ecs register-task-definition --cli-input-json file://aws/task-definitions/backend-flask.json
-```
-- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the file to ECS to use the newer file)
-
 #### Create a Task definition file for the Front-end container
 - To create a task in the container, we will:
 - Create a Task definition json file in , [aws/task-definitions/frontend-react-js.json]()
 ***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
 - In the terminal, run 
 ```chmod u+x ./aws/task-definitions/frontend-react-js.json```
-- In task-defintion, make sure to add in the ```health-check``` in the json file, at the container level so that the file looks like this:
+- In task-definition, make sure to add in the ```health-check``` in the json file, at the container level so that the file looks like this:
 ```
 ```
 
@@ -476,6 +468,14 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
 ``` 
+
+#### Create an ECS cluster with service connect from the CLI
+- Create a new file in ```aws/json``` use the following [aws/json/service-frontend-react-js.json]()
+
+#### Create the service
+```
+aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
+```
 
 #### Create a Target group for frontend to the Load Balancer
 - Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
