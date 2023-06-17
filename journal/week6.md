@@ -462,6 +462,15 @@ docker run --rm -p 3000:3000 -it frontend-react-js
 ```chmod u+x ./aws/task-definitions/frontend-react-js.json```
 - In task-definition, make sure to add in the ```health-check``` in the json file, at the container level so that the file looks like this:
 ```
+        "healthCheck": {
+          "command": [
+            "CMD-SHELL",
+            "curl -f http://localhost:3000 || exit 1 "
+          ], 
+          "interval": 30,
+          "timeout": 5,
+          "retries": 3
+        },
 ```
 
 #### Register Task definition for the Front-end container
