@@ -2,20 +2,16 @@
 set -e #stop if it fails at any point
 
 if [ -z "$1" ]; then
-    echo "No TASK_ID argument supplied eg ../bin/ecs/connect-to-service cruddur-messages <task ARN> backend-flask"
+    echo "No TASK_ID argument supplied eg ../bin/ecs/connect-to-service-backend-flask <task ARN> "
     exit 1
 fi 
 TASK_ID=$1
 
-#for our container
-if [ -z "$2" ]; then
-    echo "No CONTAINER_NAME supplied eg ../bin/ecs/connect-to-service cruddur-messages <task ARN> backend-flask"
-    exit 1
-fi 
-CONTAINER_NAME=$2
+CONTAINER_NAME=backend-flask
 
 #list tasks running in ECS
-
+echo "TASK ID : $TASK_ID"
+echo "Container name: $CONTAINER_NAME"
 
 aws ecs execute-command \
   --region $AWS_REGION \

@@ -1,2 +1,6 @@
 docker/**/*
 frontend-react-js/build/*
+db.json
+.gitignore
+db.json
+dfdfd
