@@ -38,6 +38,9 @@ This week will be learning about NoSQl Databases and the different types that ex
 - Easily Scalable 
 
 ## Prerequisites
+1. Make sure that the following environment variables have been set so that we can securely reference them in our code without exposing important information
+- AWS REGION
+- 
 
 ## Business Use Cases for DynamoDB
 1. Will be used with our application for message caching
