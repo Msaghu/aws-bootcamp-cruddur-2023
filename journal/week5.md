@@ -25,6 +25,9 @@ This week will be learning about NoSQl Databases and the different types that ex
 - Flexible schema vs Fixed Schema
 - Scales out(horizontally scaling) vs Scales up(vertical scaling)
 
+**Why a Database rather than Amazon S3?**
+- For our particular use case, which is a social media application, we will be making multiple PUT, GET requests per second . AWS S3 offers eventual data consistency  i.e when we make changes to files that already exists in an S3 bucket, or delete files, it takes some time to be carried over to all versions/to be propagated , and older versions can still be visible and this is not ideal thus making it unsuitable for our use case.
+
 **What are the types of NoSQL database types?**
 - key-value,
 - document, 
