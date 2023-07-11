@@ -26,6 +26,7 @@
 6. Play around with Fargate desired capacity
 7. How to push new updates to your code update Fargate running tasks
 8. Test that we have a Cross-origin Resource Sharing (CORS) issue
+9. Adding a CDN layer with AWS CloudFront with a TTL(time to live) and manual invalidation.
 
 # FOR THE BACKEND
 # Create an Elastic Container Repository (ECR) 
