@@ -5,6 +5,9 @@
 #### How does the internet work?
 - The internet is essentially a type of phonebook in terms of IP addresses.
 - Web browsers interact on the internet using IP addresses. However since its virtually impossible to memorise all existing IP addresses of the websites that we like, there needs to be an intermediary that will translate the website names that we provide into an IP address( a format more palatable for a computer). This intermediary is the Domain Name System(DNS).
+- So when we search for coolbeans.com:
+1. It will first perfor a local lookup
+2. Perform a recursive search
 
 ##### DNS Records
 - This is how the internet does the mapping of a name to an existing IP address. The most common type of DNS record is an:
@@ -602,6 +605,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 1. Create a hosted zone with the AWS CLI
 2. Make a bash script that automatically gives the VPC ID and SuBNET IDS.
 3. Create a Load Balancer using the CLI
+4. Create a a CloudFront domain name via the CLI
 
 
 ## Aditional links 
