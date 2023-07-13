@@ -7,17 +7,22 @@
 - Web browsers interact on the internet using IP addresses. However since its virtually impossible to memorise all existing IP addresses of the websites that we like, there needs to be an intermediary that will translate the website names that we provide into an IP address( a format more palatable for a computer). This intermediary is the Domain Name System(DNS).
 
 ##### DNS Records
-- This is how the internet does the mapping of a name to an existing IP address. The most common type of DNS record is an
+- This is how the internet does the mapping of a name to an existing IP address. The most common type of DNS record is an:
+  
 ***A Records*** - maps a name to an IPV4 addresses
+
 ***AAAA Records***- maps a nme to an IPV6 addresses
+
 ***CNAME Records*** - Allows us to route to/map to other domain names as addresses
+
 ***MX Records*** - for email addresses , and is set for each mail server by priority.
+
 ***NS Records*** - 
 
 ##### What is AWS Route 53?
 - This a an AWS managed Highly scalable DNS service.
 ***Fun fact - Route 53 gets its name because port 53 is the protocol for DNS. and DNS uses port 53 both in TCP and UDP.***
-
+- Allows us to use Alias records for AWS resources and we can also purchase domains.
   
 ##### What are Load Balancers and Health checks?
 ##### What is AWS ECR and its benefits?
