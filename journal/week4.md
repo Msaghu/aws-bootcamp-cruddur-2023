@@ -3,10 +3,30 @@
 ## Introduction
 
 **Why AWS RDS Postgres over AWS Aurora?**
+- AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
+- When create a database we need to be sure that it has been created in the same region where our account is.
+- You can create and modify a DB instance by using the AWS Command Line Interface (AWS CLI), the Amazon RDS API, or the AWS Management Console.
+- Amazon RDS is responsible for hosting the software components and infrastructure of DB instances and DB cluster. We are responsible for query tuning, which is the process of adjusting SQL queries to improve performance.
+- We can run our DB instance in several Availability Zones, an option called a Multi-AZ deployment. When we choose this option, Amazon automatically provisions and maintains one or more secondary standby DB instances in a different Availability Zone. Your primary DB instance is replicated across Availability Zones to each secondary DB instance.
+- We use security groups to control the access to a DB instance. It does so by allowing access to IP address ranges or Amazon EC2 instances that you specify.
+
+**DB engines**
+- A DB engine is the specific relational database software that runs on your DB instance. Amazon RDS currently supports the following engines:
+
+-MariaDB
+
+-Microsoft SQL Server
+
+-MySQL
+
+-Oracle
+
+-PostgreSQL
+
 
 ## Prerequisites
 1. AWS Free Tier account
-2. AWS CLI on your local environment
+2. AWS CLI installed on your local environment
 3. Knowledge of SQL and PostgreSQL.
 
 ## Use Cases
@@ -33,27 +53,19 @@
 - Correctly sanitize parameters passed to SQL to execute
   
 ### Security for Amazon RDS and Postgres
-**What are the different types of Amazon RDS Databse Engines?**
-- Amazon Aurora
-- MySQL
-- MariaDB
-- PostreSQL
-- Oracle
-- Microsoft SQL Server
-
 **Security best practises - AWS**
-- Use VPCs: Use Amazon Virtula Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet.
+- Use VPCs: Use Amazon Virtual Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet. While creat9ing security groups, NEVER allow inbound traffic from the internet, but rather only from known IP adderesses.
 - Compliance standard is what the business requires.
 - RDS Instances should only be in the AWS region that you are legally allowed to be holding user data in.
-- Amazon Oranisations SCP - to manage RDS deletion, RDS creation, region lock, RDS encryption enforced.
+- Amazon Organisations SCP - to manage RDS deletion, RDS creation, region lock, RDS encryption enforced.
 - AWS CloudTrail is enabled and monitored to trigger alerts on malicious RDS behaviour by an identity in AWS.
 - Amazon Guard Duty is enabled in the account and region of RDS.
 
 **Security best practises - Application/Developer**
 - RDS instance to use appropriate authentication - Use IAM authentication, kerberos 
 - Database User Lifecycle Management - Create, Modify, Delete Users
-- Security Group to be restrictedonly to known IPs
-- Not have RDS be internet accessible
+- Security Group to be restricted only to known IPs
+- Should not have the RDS be internet accessible
 - Encryption in Transit for comms between Apps and RDS
 - Secret Management - Master user password can be used with AWS Secrets Manager to automatically rotate the secrets for the Amazon RDS.
 
