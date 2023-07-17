@@ -2,7 +2,7 @@
 
 ## Introduction
 
-**Why AWS RDS Postgres over AWS Aurora?**
+**What is AWS RDS?**
 - AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
 - When create a database we need to be sure that it has been created in the same region where our account is.
 - You can create and modify a DB instance by using the AWS Command Line Interface (AWS CLI), the Amazon RDS API, or the AWS Management Console.
@@ -22,6 +22,8 @@
 -Oracle
 
 -PostgreSQL
+
+**Why AWS RDS Postgres over AWS Aurora?**
 
 
 ## Prerequisites
