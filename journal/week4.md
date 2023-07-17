@@ -74,6 +74,7 @@
 15. Do not **Enable Deletion protection**, which for production should be turned on for backup purposes.
 
 ### Step 2 - Use the AWS CLI in Gitpod to create a RDS instance and create a Cruddur database in the instance
+- Run ``aws sts get-caller-identity``` in the terminal to make sure that our values have been set.
 - Use the following command to create an RDS instance via the CLI, notice that the commands follow the set up in Step 1.
 ```
 aws rds create-db-instance \
@@ -104,27 +105,28 @@ aws rds create-db-instance \
  
 ### Step 4 - Remotely connect to RDS instance
 #### Create a local Cruddur Database in PostgreSQL**
-- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,( we added Postgres into the Docker-compose file in the earlier weeks).
+- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks)**.
 - Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, run the following commands:
 ```
 sudo apt update
 sudo apt install -y postgresql-client-12 OR
 sudo apt install -y postgresql-client-13/14
 psql -Upostgres --host localhost
-(When it prompts for password enter: ***password***
+(When it prompts for password enter: ***password***)
 ```
 
 - Then to list existing databases run ```\l```
 - To create a new database called cruddur we will run
 ``` CREATE database cruddur; ```
 
-- As opposed to how we created the Database schema manually in our Dev.to tutorial , link below, here we will import it/ use a premade
+- As opposed to how we created the Database schema manually in our [https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig](Dev.to) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
 - We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**
--Paste the following into the schema.sql 
+-Paste the following into the schema.sql, to create UUID( along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
+
 ***LONG METHOD (where we do not have to input the password each time)***
 - To create the extension located in the schema.sql file, change(cd) into backend-flask then run the following command(if prompted for password enter password):
 ```
