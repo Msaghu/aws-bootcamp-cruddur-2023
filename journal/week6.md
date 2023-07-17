@@ -1,4 +1,6 @@
 # Week 6 — Deploying Containers with ECS and Fargate
+
+## Introduction
 - Welcome to week 6 and 7 of the Free AWS Bootcamp. This week we will be leveraging the power of AWS to deploy our app as containers, using AWS ECR to register the images and deploying the images as containers using ECS. We will then use AWS route 53 to access the application via the internet. All of this is broken down in the Architecture desription below, but first, lets get into a few basic definitions here.
 
 ### Basic Definitions
