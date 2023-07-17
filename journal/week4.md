@@ -191,7 +191,7 @@ UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition; -
 DELETE FROM table_name WHERE condition; -- Delete data from a table
 ```
 
-### Step 4 - Bash Scripting
+**Step 4 - Bash Scripting**
 - We will create 3 new files in backend-flask folder so that we can run bash scripts that enable us to quickly manage our databases; ```db-create, db-seed, db-drop, db-schema-load```
 - In the terminal run 
 ``` whereis bash```
