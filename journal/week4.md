@@ -2,8 +2,6 @@
 
 ## Introduction
 
-### Basic Definitions
-
 **What is AWS RDS?**
 - AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
 - When create a database we need to be sure that it has been created in the same region where our account is.
@@ -26,7 +24,7 @@
 -PostgreSQL
 
 **Why AWS RDS Postgres over AWS Aurora?**
-
+- For the purposes , we went for our use case and so that we can be better acquinted with SQL databases.
 
 ## Prerequisites
 1. AWS Free Tier account
@@ -155,9 +153,7 @@ psql $CONNECTION_URL
 gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddur"
 ```
 
-
-
-**Step 4 - Bash Scripting**
+### Step 4 - Bash Scripting
 - We will create 3 new files in backend-flask folder so that we can run bash scripts that enable us to quickly manage our databases; ```db-create, db-seed, db-drop, db-schema-load```
 - In the terminal run 
 ``` whereis bash```
