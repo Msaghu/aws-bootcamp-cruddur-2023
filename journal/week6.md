@@ -28,11 +28,27 @@
 - This a an AWS managed Highly scalable DNS service.
 ***Fun fact - Route 53 gets its name because port 53 is the protocol for DNS. and DNS uses port 53 both in TCP and UDP.***
 - Allows us to use Alias records for AWS resources and we can also purchase domains.
-  
-##### What are Load Balancers and Health checks?
 
 ##### What is AWS ECS and what are its benefits?
+- Amazon Elastic Container Service (Amazon ECS) is a fully managed container orchestration service that helps you easily deploy, manage, and scale containerized applications. As a fully managed service, Amazon ECS comes with AWS configuration and operational best practices built-in.
+- It's integrated with both AWS and third-party tools, such as Amazon Elastic Container Registry and Docker. This integration makes it easier for teams to focus on building the applications, not the environment. You can run and scale your container workloads across AWS Regions in the cloud, and on-premises, without the complexity of managing a control plane.
 
+There are three layers in Amazon ECS:
+
+***Capacity*** - The infrastructure where your containers run
+
+***Controller*** - Deploy and manage your applications that run on the containers
+
+***Provisioning*** - The tools that you can use to interface with the scheduler to deploy and manage your applications and containers
+
+##### Amazon ECS capacity
+Amazon ECS capacity is the infrastructure where your containers run. The following is an overview of the capacity options:
+
+***Amazon EC2 instances in the AWS cloud*** - You choose the instance type, the number of instances, and manage the capacity.
+
+***Serverless (AWS Fargate (Fargate)) in the AWS cloud*** - Fargate is a serverless, pay-as-you-go compute engine. With Fargate you don't need to manage servers, handle capacity planning, or isolate container workloads for security.
+
+***On-premises virtual machines (VM) or servers***
 
 ##### What is AWS ECR and its benefits?
 - A container image holds your application code and all the dependencies that your application code requires to run. Application dependencies include the source code packages that your application code relies on, a language runtime for interpreted languages, and binary packages that your dynamically linked code relies on.
@@ -48,10 +64,10 @@
 - Ideally, a container image is intended to be a complete snapshot of everything that the application requires to function. With a complete container image, you can run an application by downloading one container image from one place. You don't need to download several separate pieces from different locations. Therefore, as a best practice, store all application dependencies as static files inside the container image.
 
 - At the same time, don't dynamically download libraries, dependencies, or critical data during application startup. Instead, include these things as static files in the container image. Later on, if you want to change something in the container image, build a new container image with the changes applied to it.
-
+  
+##### What are Load Balancers and Health checks?
 
 ##### Networking within AWS
-
 
 ### AWS ECS Launch types 
 1. Use Elastic Load Balancers(ELBs) + Auto Scaling groups
@@ -79,7 +95,6 @@
 # FOR THE BACKEND
 # Create an Elastic Container Repository (ECR) 
 ### Step 1: Create an Elastic Container Repository(ECR) via the CLI
-A repository is where you store your Docker or Open Container Initiative (OCI) images in Amazon ECR. Each time you push or pull an image from Amazon ECR, you specify the repository and the registry location which informs where to push the image to or where to pull it from.
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 - In AWS ECR, we can create a private repository uasing the following steps:
 - AMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
@@ -91,12 +106,13 @@ A repository is where you store your Docker or Open Container Initiative (OCI) i
 aws ecr create-repository \
   --repository-name cruddur-python \
   --image-tag-mutability MUTABLE
-  ```
+```
+
 #### Log in to ECR via CLI
  - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
  
  ```
- aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
  
 #### Set URL
