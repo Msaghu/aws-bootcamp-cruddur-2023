@@ -93,28 +93,78 @@ Amazon ECS capacity is the infrastructure where your containers run. The followi
 9. Adding a CDN layer with AWS CloudFront with a TTL(time to live) and manual invalidation.
 
 # FOR THE BACKEND
+# Test that our services work individually
+- To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
+- The various stages are:
+1. At the Load Balancer level
+2. At the container level
+3. Of the RDS instance
+
+{Before starting these stepos, make sure to start your RDS instance in AWS}
+
+### Step 1: Perform health checks on our RDS instance at the Load Balancer level
+#### Create a Load Balancer via the console
+
+
+
+### Step 2: Perform health checks on our RDS instance
+- In ```backend-flask/bin/db``` create a new file ```/test``` [backend-flask/bin/db/test](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/db/test)
+- This will tell us if health check was successful on our local postgres DB.
+- Since we are now running in production, we will add production to the test script i.e
+```connection_url = os.getenv("PROD_CONNECTION_URL")```.
+- Run the script ```bin/rds/update-sg-rule```
+- Change the permissions on the script file and connect to our RDS instance:
+```
+chmod u+x backend-flask/bin/db/test
+./backend-flask/bin/db/test
+```
+
+- This will connect us to our container.
+- Check { env | grep CONNECTION }
+
+### Step 3: Perform health checks on our Flask App
+- In ```backend-flask/app.py``` add in new code block to [backend-flask/app.py](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/app.py_) to add a health-check endpoint:
+```
+@app.route('/api/health-check')
+def health_check():
+  return {'success': True}, 200
+```
+
+- In ```backend-flask/bin``` create a new folder ```/flask```[backend-flask/bin/flask/health-check](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/flask/health-check)
+- Change the permissions on the script file and connect to our RDS instance:
+```
+chmod u+x backend-flask/bin/flask/health-check
+./backend-flask/bin/flask/health-check
+```
+
+### Step 4: Create a new CloudWatch log group
+- In the AWS CLI, paste in the following to create a CloudWatch group with the name ***/cruddur/fargate-cluster*** and the time to store the logs  which will be 1 day:
+```
+aws logs create-log-group --log-group-name "/cruddur/fargate-cluster"
+aws logs put-retention-policy --log-group-name "/cruddur/fargate-cluster" --retention-in-days 1
+```
+
 # Create an Elastic Container Repository (ECR) 
-### Step 1: Create an Elastic Container Repository(ECR) via the CLI
+### Step 5: Create an Elastic Container Repository(ECR) 
+#### Option 1: Create a Private Repository Elastic Container Repository(ECR) via the console
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 - In AWS ECR, we can create a private repository uasing the following steps:
 - AMAZON ecr > Create Repository > In General settings, in Visibility settings choose ```Private``` > Enter your preferred ```Repository name``` > Enable ```Tag immutability``` (prevents image tags from being overwritten by subsequent image pushes using the same tag) > Create Repository.
 - Now let's do this via the AWS CLI in Gitpod. 
 
-#### Create a Private Repository via the CLI
+#### Option 2: Create a Private Repository Elastic Container Repository(ECR) via the  via the CLI
 - To create a repository ```cruddur-python``` in ECR:
 ```
 aws ecr create-repository \
   --repository-name cruddur-python \
   --image-tag-mutability MUTABLE
 ```
-
 #### Log in to ECR via CLI
  - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
  
  ```
 aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
- 
 #### Set URL
 - We will now set path for the address that will map to our ECR IP
 ```
@@ -123,13 +173,14 @@ echo $ECR_PYTHON_URL
 ```
 
 # Push our container images to ECR
-### Step 2: Push a Python Image to the container we created above for the backend 
+### Step 6: Push a Python Image to the container we created above for the Backend 
 #### Pull Python Image from Dockerhub
 - Pull the python image from Dockerhub to our local environment , then confirm that its downloaded/pulled
 ```
 docker pull python:3.10-slim-buster 
 docker images
 ```
+
 #### Tag the Python image pulled above
 ```docker tag python:3.10-slim-buster $ECR_PYTHON_URL:3.10-slim-buster```
 #### Push the Python image to ECR
@@ -142,7 +193,7 @@ docker images
 - To test that the application is now running, launch the backend service then paste in ```/api/health-check```, should return : 
 ``` { success: True } ```
 
-### Step 3: Push a Python Image to the conatiner we created above for Flask
+### Step 7: Push a Python Image to the container we created above for Flask
 - Create Repo
 ```aws ecr create-repository \
   --repository-name backend-flask \
@@ -154,17 +205,14 @@ docker images
 export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
 echo $ECR_BACKEND_FLASK_URL
 ```
-
 #### Build image
  ```
  docker build -t backend-flask .
  ```
- 
 #### Tag Image
  ```
  docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
  ```
-
 #### Push image
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
@@ -174,7 +222,7 @@ echo $ECR_BACKEND_FLASK_URL
 ## Task definition
 - The task definition is a document that describes what container images to run together, and what settings to use when running the container images. These settings include the amount of CPU and memory that the container needs. They also include any environment variables that are supplied to the container and any data volumes that are mounted to the container. Task definitions are grouped based on the dimensions of family and revision.
   
-### Step 5: Create Task and Execution Roles for Task definition
+### Step 8: Create Task and Execution Roles for Task definition
 - Create Parameter Store from Systems Manager to create parameters that will enable us to conceal sensitive information
 - We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
 - Then run the following commands in the terminal.
@@ -188,7 +236,7 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_
 
 - Go to ```AWS Systems Manager > Parameter Store``` to make sure that the values were correctly set.
 
-### Step 6: Create an ECS role and attach a policy that will allow ECS to execute tasks
+### Step 9: Create an ECS role and attach a policy that will allow ECS to execute tasks
 - In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-assume-role-execution-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \    
@@ -212,7 +260,7 @@ aws iam put-role-policy \
  logs:PutLogEvents
  }***
 
-### Step 7: Create and attach a CloudWatchFullAccess policy 
+### Step 10: Create and attach a CloudWatchFullAccess policy 
 - We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
@@ -225,7 +273,7 @@ OR you can also do this(if you dont want to create the JSON policy document THEN
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurServiceExecutionRole
 ```
 
-### Step 8: Create a CruddurTaskRole and attach a Sessions Manager policy 
+### Step 11: Create a CruddurTaskRole and attach a Sessions Manager policy 
 - In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
 ```
 aws iam create-role \
@@ -241,19 +289,19 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/ssm-task-policy..json
 ```
 
-### Step 9: Create CloudWatch FullAccess policies to the SSM Task Role
+### Step 12: Create CloudWatch FullAccess policies to the SSM Task Role
 - Attach an existing AWS policy, ```CloudWatch FullAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurTaskRole
 ```
 
-### Step 10: Create a write policy for the XRAY Daemon to the SSM Task Role
+### Step 13: Create a write policy for the XRAY Daemon to the SSM Task Role
 - Attach an existing AWS policy, ```AWSXRayDaemonWriteAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
 
-### Step 11: Create a task definition file(this defines how we provision an application)
+### Step 14: Create a task definition file(this defines how we provision an application)
 - A task definition is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
 ***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
@@ -265,7 +313,7 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/ba
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the file to ECS to use the newer file)
 
 # Create a Load Balancer, VPCs and Security groups for the Backend services 
-### Step 12: Prepare our backend container to be deployed to Fargate
+### Step 15: Prepare our backend container to be deployed to Fargate
 #### Creating a default VPC 
 (All these commands should be run in workspace/aws-bootcamp-cruddur)
 - Create a default VPC via the terminal/CLI, i.e find the default VPC and return its VPC ID if True.
@@ -286,7 +334,6 @@ aws ec2 authorize-security-group-ingress \
   --port 4567 \
   --cidr 0.0.0.0/0
 ```
-
 #### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
 - In the terminal, paste in and enter:
 ```
@@ -301,7 +348,6 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 - Then in ```gitpod.yml``` add the follwoing line to make sure that its set up installed everytime we launch the environment:
 ```
 ```
-
 #### Creating a Security Group
 - Create a security group via the terminal/CLI
 ```
@@ -331,6 +377,14 @@ echo $CRUD_SERVICE_SG
 #### Option 1: Create our ECS cluster via the console 
 - Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
 Desired tasks ```1``` 
+
+#### Option 2: 
+- Create an ECS cluster named ***cruddur*** using the terminal, paste in and run:
+```
+aws ecs create-cluster \
+--cluster-name cruddur \
+--service-connect-defaults namespace=cruddur
+```
 
 #### Option 2: Create our ECS cluster via the CLI 
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
@@ -585,52 +639,6 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
 
-# Test that our services work individually
-- To ensure the health of our Cruddur application, we would need to deploy health checks at various instances to ensure that it is running optimally.
-- The various stages are:
-1. At the Load Balancer level
-2. At the container level
-3. Of the RDS instance
-
-{Before starting these stepos, make sure to start your RDS instance in AWS}
-
-#### Create a Load Balancer via the console
-
-
-
-### Step 1: Perform health checks on our RDS instance
-- In ```backend-flask/bin/db``` create a new file ```/test``` [backend-flask/bin/db/test](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/db/test)
-- This will tell us if health check was successful on our local postgres DB.
-- Since we are now running in production, we will add production to the test script i.e
-```connection_url = os.getenv("PROD_CONNECTION_URL")```.
-- Run the script ```bin/rds/update-sg-rule```
-- Change the permissions on the script file and connect to our RDS instance:
-```
-chmod u+x backend-flask/bin/db/test
-./backend-flask/bin/db/test
-```
-
-- This will connect us to our container.
-- Check { env | grep CONNECTION }
-
-### Step 2: Perform health checks on our Flask App
-- In ```backend-flask/app.py``` add in new code block to [backend-flask/app.py](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/app.py_) to add a health-check endpoint:
-```
-@app.route('/api/health-check')
-def health_check():
-  return {'success': True}, 200
-```
-
-- In ```backend-flask/bin``` create a new folder ```/flask```[backend-flask/bin/flask/health-check](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/flask/health-check)
-- Change the permissions on the script file and connect to our RDS instance:
-```
-chmod u+x backend-flask/bin/flask/health-check
-./backend-flask/bin/flask/health-check
-```
-
-
-
-### Step 3: Create a new CloudWatch log group
 
 # Create a custom domain with SSL and Route53
 ### Step : Create a Hosted zone in Route 53
