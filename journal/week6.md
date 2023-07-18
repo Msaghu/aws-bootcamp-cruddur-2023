@@ -30,8 +30,26 @@
 - Allows us to use Alias records for AWS resources and we can also purchase domains.
   
 ##### What are Load Balancers and Health checks?
+
+##### What is AWS ECS and what are its benefits?
+
+
 ##### What is AWS ECR and its benefits?
-##### What is AWS ECS, Fargate and what are its benefits?
+- A container image holds your application code and all the dependencies that your application code requires to run. Application dependencies include the source code packages that your application code relies on, a language runtime for interpreted languages, and binary packages that your dynamically linked code relies on.
+- Container images go through a three-step process.
+
+***Build*** - Gather your application and all its dependencies into one container image.
+
+***Store*** - Upload the container image to a container registry.
+
+***Run*** - Download the container image on some compute, unpack it, and start the application.
+
+##### Why do we make container images complete and static?
+- Ideally, a container image is intended to be a complete snapshot of everything that the application requires to function. With a complete container image, you can run an application by downloading one container image from one place. You don't need to download several separate pieces from different locations. Therefore, as a best practice, store all application dependencies as static files inside the container image.
+
+- At the same time, don't dynamically download libraries, dependencies, or critical data during application startup. Instead, include these things as static files in the container image. Later on, if you want to change something in the container image, build a new container image with the changes applied to it.
+
+
 ##### Networking within AWS
 
 
@@ -137,6 +155,9 @@ echo $ECR_BACKEND_FLASK_URL
  ```
 
 # Write an ECS Task Definition file for Fargate
+## Task definition
+- The task definition is a document that describes what container images to run together, and what settings to use when running the container images. These settings include the amount of CPU and memory that the container needs. They also include any environment variables that are supplied to the container and any data volumes that are mounted to the container. Task definitions are grouped based on the dimensions of family and revision.
+  
 ### Step 5: Create Task and Execution Roles for Task definition
 - Create Parameter Store from Systems Manager to create parameters that will enable us to conceal sensitive information
 - We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
@@ -594,11 +615,11 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ### Security challenges with AWS Fargate
 1. Infrastructure is AWS managed thus no visilibility of infrastructure.
-2. Ephemeral resources make it hard to do triage/forensics for detectewd threats.
+2. Ephemeral resources make it hard to do triage/forensics for detected threats.
 3. No file/network monitoring.
 4. Cannot run traditional security agents.
 5. User can run unverified container images.
-6.  Containers can run as root and with elevated priviledges(when working with Linux systems, this can be very dangerous as root priviledges give users unlimited access to your entire system thus they can delete important running systems).
+6. Containers can run as root and with elevated priviledges(when working with Linux systems, this can be very dangerous as root priviledges give users unlimited access to your entire system thus they can delete important running systems).
 
 ### Amazon ECS - Security Best practises
 1. 
@@ -612,3 +633,4 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ## Aditional links 
 1. [Security in AWS ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
+2. [AWS ECS documentation](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/application.html)
