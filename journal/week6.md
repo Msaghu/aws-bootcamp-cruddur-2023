@@ -144,8 +144,8 @@ aws logs create-log-group --log-group-name "/cruddur/fargate-cluster"
 aws logs put-retention-policy --log-group-name "/cruddur/fargate-cluster" --retention-in-days 1
 ```
 
-# Create an Elastic Container Repository (ECR) 
-### Step 5: Create an Elastic Container Repository(ECR) 
+# Create 3 Elastic Container Repositories (ECR) 
+### Step 5: Create an Elastic Container Repository(ECR) for Python
 #### Option 1: Create a Private Repository Elastic Container Repository(ECR) via the console
 - We will be pulling a Python image from Dockerhub and push it to a hosted version of ECR. We do this so that different versions of python do not interfere with our application.
 - In AWS ECR, we can create a private repository uasing the following steps:
@@ -160,7 +160,7 @@ aws ecr create-repository \
   --image-tag-mutability MUTABLE
 ```
 #### Log in to ECR via CLI
- - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
+ - Login to our ECR repo we created above for the Python base-image so that we can push images to the repository.
  
  ```
 aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
@@ -172,7 +172,7 @@ export ECR_PYTHON_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 echo $ECR_PYTHON_URL
 ```
 
-# Push our container images to ECR
+# Push our Python container image to ECR
 ### Step 6: Push a Python Image to the container we created above for the Backend 
 #### Pull Python Image from Dockerhub
 - Pull the python image from Dockerhub to our local environment , then confirm that its downloaded/pulled
@@ -187,24 +187,28 @@ docker images
 ```docker push $ECR_PYTHON_URL:3.10-slim-buster```
 #### Prepare our Flask App to use the python image from ECR
 - We will copy URI from the ECR python image into our Dockerfile so that we now use the image stored in ECR i.e the first line of the Dockerfile:
-```nbjhg```
+Change from
+```FROM python:3.10-slim-buster```
+to
+```FROM 45ghhgghhhhh.dkr.ecr.us-east-1.amazonaws.com/cruddur-python:3.10-slim-buster```
 #### Docker compose up
-- Run docker compose up for the backend and the Database.
-- To test that the application is now running, launch the backend service then paste in ```/api/health-check```, should return : 
+- Run docker compose up for the Backend and the Database only.
+- To test that the application is now running, launch the backend service from the Docker container in a new browser tab then add in ```/api/health-check```, at the end. It should return : 
 ``` { success: True } ```
 
-### Step 7: Push a Python Image to the container we created above for Flask
-- Create Repo
+### Step 7: Create an Elastic Container Repository(ECR) for Flask
+- Create Repository ```backend-flask``` in ECR:
 ```aws ecr create-repository \
   --repository-name backend-flask \
   --image-tag-mutability MUTABLE
 ```
-
 #### Set URL
 ```
 export ECR_BACKEND_FLASK_URL="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/backend-flask"
 echo $ECR_BACKEND_FLASK_URL
 ```
+
+### Step 8: Push a Python Image to the container we created above for Flask
 #### Build image
  ```
  docker build -t backend-flask .
@@ -221,8 +225,12 @@ echo $ECR_BACKEND_FLASK_URL
 # Write an ECS Task Definition file for Fargate
 ## Task definition
 - The task definition is a document that describes what container images to run together, and what settings to use when running the container images. These settings include the amount of CPU and memory that the container needs. They also include any environment variables that are supplied to the container and any data volumes that are mounted to the container. Task definitions are grouped based on the dimensions of family and revision.
-  
-### Step 8: Create Task and Execution Roles for Task definition
+
+## Difference between tasks and services
+- A ***task*** is the instantiation of a task definition within a cluster. You can run a standalone task, or you can run a task as part of a service.
+- You can use an Amazon ECS ***service*** to run and maintain your desired number of tasks simultaneously in an Amazon ECS cluster. How it works is that, if any of your tasks fail or stop for any reason, the Amazon ECS service scheduler launches another instance based on your task definition. It does this to replace it and thereby maintain your desired number of tasks in the service. A service is continously running.
+
+### Step 9: Create Task and Execution Roles for Task definition
 - Create Parameter Store from Systems Manager to create parameters that will enable us to conceal sensitive information
 - We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
 - Then run the following commands in the terminal.
@@ -286,7 +294,7 @@ aws iam create-role \
 aws iam put-role-policy \
   --policy-name SSMAccessPolicy \
   --role-name CruddurTaskRole \
-  --policy-document file://aws/policies/ssm-task-policy..json
+  --policy-document file://aws/policies/ssm-task-policy.json
 ```
 
 ### Step 12: Create CloudWatch FullAccess policies to the SSM Task Role
@@ -674,6 +682,7 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 2. Make a bash script that automatically gives the VPC ID and SuBNET IDS.
 3. Create a Load Balancer using the CLI
 4. Create a a CloudFront domain name via the CLI
+5. Create a private reposirory for React
 
 
 ## Aditional links 
