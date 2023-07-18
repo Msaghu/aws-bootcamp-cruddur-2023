@@ -599,15 +599,36 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 
 ### Step 1: Perform health checks on our RDS instance
-- In ```backend-flask/db``` create a new file ```/test``` [backend-flask/db/test](_)
+- In ```backend-flask/bin/db``` create a new file ```/test``` [backend-flask/bin/db/test](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/db/test)
 - This will tell us if health check was successful on our local postgres DB.
-- Since we are now running in production, we will add production to the test script.
+- Since we are now running in production, we will add production to the test script i.e
+```connection_url = os.getenv("PROD_CONNECTION_URL")```.
+- Run the script ```bin/rds/update-sg-rule```
+- Change the permissions on the script file and connect to our RDS instance:
+```
+chmod u+x backend-flask/bin/db/test
+./backend-flask/bin/db/test
+```
+
 - This will connect us to our container.
 - Check { env | grep CONNECTION }
 
 ### Step 2: Perform health checks on our Flask App
-- In ```backend-flask/app.py``` add in new code [backend-flask/app.py](_)
-- In ```backend-flask/bin``` create a new file ```/flask```[backend-flask/bin/flask](_)
+- In ```backend-flask/app.py``` add in new code block to [backend-flask/app.py](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/app.py_) to add a health-check endpoint:
+```
+@app.route('/api/health-check')
+def health_check():
+  return {'success': True}, 200
+```
+
+- In ```backend-flask/bin``` create a new folder ```/flask```[backend-flask/bin/flask/health-check](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/flask/health-check)
+- Change the permissions on the script file and connect to our RDS instance:
+```
+chmod u+x backend-flask/bin/flask/health-check
+./backend-flask/bin/flask/health-check
+```
+
+
 
 ### Step 3: Create a new CloudWatch log group
 
