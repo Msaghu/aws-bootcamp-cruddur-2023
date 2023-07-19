@@ -384,6 +384,11 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 
 - Then in ```gitpod.yml``` add the follwoing line to make sure that its set up installed everytime we launch the environment:
 ```
+ - name: fargate
+    before: |
+      curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
+      sudo dpkg -i session-manager-plugin.deb
+      cd backend-flask
 ```
 
 #### Create a Load Balancer via the console
@@ -402,7 +407,7 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 #### Option 1: Create our ECS cluster via the console 
 - Choose clusters > Choose the ***cruddur*** cluster > Choose ***create*** > Choose Launch type ***FARGATE*** > Choose the platform version as ***LATEST*** > Choose the Deployment configuration ***Service*** >  Choose Family ***backend-flask*** > Revision ***2(LATEST)*** > Choose Service type ***Replica*** > Desired tasks ***1*** > Networking ***Default VPC*** > 
 
-#### Option 2: 
+#### Option 2: Create our ECS cluster via the CLI 
 - Create an ECS cluster named ***cruddur*** using the terminal, paste in and run:
 ```
 aws ecs create-cluster \
@@ -410,7 +415,7 @@ aws ecs create-cluster \
   --service-connect-defaults namespace=cruddur
 ```
 
-#### Option 3: Create our ECS cluster via the CLI 
+#### Option 3: Create our ECS cluster as a script
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-backend-flask.json)
 ```
 {
@@ -477,7 +482,8 @@ export CRUD_CLUSTER_SG=$(aws ec2 describe-security-groups \
 aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
 ```
 
-#### Create a Sessions Manager script that will allow us to access our container
+### Step 16: Access our container via SSH
+#### Option 1: Create a Sessions Manager script that will allow us to SSH into our container
 - We can access the ECS cluster container using the bash terminal to view the status of the cluster tasks and to check to make sure that the container is healthy.:
 ```
 aws ecs execute-command \
@@ -490,7 +496,7 @@ aws ecs execute-command \
 ```
 
 - Alternatively, we can create a Sessions Manager script that will allow us to connect to our backend bash using a script .
-- Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service]()
+- Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-backend-flask)
 - Change the permissions on the file in the terminal :
 ```
 chmod u+x ./bin/ecs/connect-to-backend-service
@@ -501,7 +507,7 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 ./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
 ```
 
-#### Create an ECS cluster with service connect from the CLI
+#### Option 2: Create an ECS cluster with Service Connect from the CLI
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
 ```
 {
