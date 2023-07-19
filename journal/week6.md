@@ -495,7 +495,7 @@ aws ecs execute-command \
   --interactive
 ```
 
-- Alternatively, we can create a Sessions Manager script that will allow us to connect to our backend bash using a script .
+- If we create a Sessions Manager script, it will look something like:
 - Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-backend-flask)
 - Change the permissions on the file in the terminal :
 ```
@@ -506,9 +506,13 @@ chmod u+x ./bin/ecs/connect-to-backend-service
 ```
 ./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
 ```
+- To list tasks:
+```
+aws ecs list-tasks --cluster cruddur
+```
 
 #### Option 2: Create an ECS cluster with Service Connect from the CLI
-- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json]()
+- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-backend-flask.json)
 ```
 {
   "cluster": "cruddur",
@@ -674,7 +678,6 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 #### Run the Frontend image
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
-
 
 # Create a custom domain with SSL and Route53
 ### Step : Create a Hosted zone in Route 53
