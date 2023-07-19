@@ -138,10 +138,10 @@ chmod u+x backend-flask/bin/flask/health-check
 ```
 
 ### Step 4: Create a new CloudWatch log group
-- In the AWS CLI, paste in the following to create a CloudWatch group with the name ***/cruddur/fargate-cluster*** and the time to store the logs  which will be 1 day:
+- In the AWS CLI, paste in the following to create a CloudWatch group with the name ***cruddur*** and the time to store the logs  which will be 1 day:
 ```
-aws logs create-log-group --log-group-name "/cruddur/fargate-cluster"
-aws logs put-retention-policy --log-group-name "/cruddur/fargate-cluster" --retention-in-days 1
+aws logs create-log-group --log-group-name "cruddur"
+aws logs put-retention-policy --log-group-name "cruddur" --retention-in-days 1
 ```
 
 # Create 3 Elastic Container Repositories (ECR) 
@@ -217,12 +217,12 @@ echo $ECR_BACKEND_FLASK_URL
  ```
  docker tag backend-flask:latest $ECR_BACKEND_FLASK_URL:latest
  ```
-#### Push image
+#### Push image to ECR
  ```
  docker push $ECR_BACKEND_FLASK_URL:latest
  ```
 
-# Write an ECS Task Definition file for Fargate
+# Write an ECS Task Definition file for the Backend ECS-Fargate Container
 ## Task definition
 - The task definition is a document that describes what container images to run together, and what settings to use when running the container images. These settings include the amount of CPU and memory that the container needs. They also include any environment variables that are supplied to the container and any data volumes that are mounted to the container. Task definitions are grouped based on the dimensions of family and revision.
 
@@ -230,9 +230,9 @@ echo $ECR_BACKEND_FLASK_URL
 - A ***task*** is the instantiation of a task definition within a cluster. You can run a standalone task, or you can run a task as part of a service.
 - You can use an Amazon ECS ***service*** to run and maintain your desired number of tasks simultaneously in an Amazon ECS cluster. How it works is that, if any of your tasks fail or stop for any reason, the Amazon ECS service scheduler launches another instance based on your task definition. It does this to replace it and thereby maintain your desired number of tasks in the service. A service is continously running.
 
-### Step 9: Create Task and Execution Roles for Task definition
-- Create Parameter Store from Systems Manager to create parameters that will enable us to conceal sensitive information
-- We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_JHGGK<JK) to make sure that they have been set in your system.
+### Step 9: Use Parameter Store to store sensitive account information
+- From Systems Manager, in Application Management Use Parameter Store to create parameters that will enable us to conceal sensitive information
+- We will ensure that the items listed below have been set as environment variabels(i.e run env |  grep AWS_ACCESS_KEY_ID) and so on to make sure that they have been set in your system.
 - Then run the following commands in the terminal.
 ```
 aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/AWS_ACCESS_KEY_ID" --value $AWS_ACCESS_KEY_ID
@@ -242,14 +242,16 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/ROLLB
 aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_EXPORTER_OTLP_HEADERS" --value "x-honeycomb-team=$HONEYCOMB_API_KEY"
 ```
 
-- Go to ```AWS Systems Manager > Parameter Store``` to make sure that the values were correctly set.
+- Go to ***AWS Systems Manager > Application Management > Parameter Store*** to make sure that the values were correctly set.
 
-### Step 9: Create an ECS role and attach a policy that will allow ECS to execute tasks
-- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-assume-role-execution-policy.json]() and run the following in the terminal to create the role:
+### Step 9: Create an ECS role for our Task Definition file and attach a policy that will allow ECS to execute the Task Definition
+- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-execution-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/service-execution-policy.json)
+- The policy will allow ECS to execute the Task Definition file that we will create below:
+- Run the following in the terminal to create the role:
 ```
 aws iam create-role \    
 --role-name CruddurServiceExecutionRole  \   
---assume-role-policy-document file://aws/policies/service-assume-role-execution-policy.json
+--assume-role-policy-document file://aws/policies/service-execution-policy.json
 ```
 - Confirm that the role was created in the AWS IAM console.
 - We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
@@ -310,9 +312,9 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 ```
 
 ### Step 14: Create a task definition file(this defines how we provision an application)
-- A task definition is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
-- Create a Task definition json file in , [aws/task-definitions/backend-flask.json]()
-***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
+- A ***task definition*** is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
+- Create a Task definition json file in , [aws/task-definitions/backend-flask.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/task-definitions/backend-flask.json)
+***{Make sure to change the values in the file as per your account, check from the Docker compose file, and the image we created in the ECR repo for the backend}***
 
 - Register the Task definition for the backend-flask
 ```
