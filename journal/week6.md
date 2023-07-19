@@ -226,7 +226,7 @@ echo $ECR_BACKEND_FLASK_URL
 ## Task definition
 - The task definition is a document that describes what container images to run together, and what settings to use when running the container images. These settings include the amount of CPU and memory that the container needs. They also include any environment variables that are supplied to the container and any data volumes that are mounted to the container. Task definitions are grouped based on the dimensions of family and revision.
 
-## Difference between tasks and services
+## Difference between tasks and services in ECS
 - A ***task*** is the instantiation of a task definition within a cluster. You can run a standalone task, or you can run a task as part of a service.
 - You can use an Amazon ECS ***service*** to run and maintain your desired number of tasks simultaneously in an Amazon ECS cluster. How it works is that, if any of your tasks fail or stop for any reason, the Amazon ECS service scheduler launches another instance based on your task definition. It does this to replace it and thereby maintain your desired number of tasks in the service. A service is continously running.
 
@@ -244,7 +244,7 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_
 
 - Go to ***AWS Systems Manager > Application Management > Parameter Store*** to make sure that the values were correctly set.
 
-### Step 9: Create an ECS role for our Task Definition file and attach a policy that will allow the ECS role to execute the Task Definition
+### Step 10: Create an ECS role for our Task Definition file and attach a policy that will allow the ECS role to execute the Task Definition
 - In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/assume-role-execution-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/assume-role-execution-policy.json)
 - The policy will allow ECS to assume a role to execute the Task Definition file that we will create below:
 - Run the following in the terminal to create the role:
@@ -261,7 +261,7 @@ aws iam put-role-policy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/service-execution-policy.json
 ```
-***{The CruddurServiceExecutionPolicy must also have the following rules which can be created inline via the console or added as lined to the JSON policy document:
+***{The CruddurServiceExecutionPolicy must also have the following rules which can be created inline via the console or added as lines to the JSON policy document:
  ecr:GetAuthorizationToken,
  ecr:BatchCheckLayerAvailability,
  ecr:GetDownloadUrlForLayer,
@@ -270,28 +270,28 @@ aws iam put-role-policy \
  logs:PutLogEvents
  }***
 
-### Step 10: Create and attach a CloudWatchFullAccess policy 
-- We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
+### Step 11: Create and attach a CloudWatchFullAccess policy tpo the existing CruddurServiceExecutionRole
+- We will add another policy, ```CloudWatchFullAccessPolicy``` [aws/policies/cloudwatch-fullaccess-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/cloudwatch-fullaccess-policy.json) and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
   --policy-name CloudWatchFullAccessPolicy \
   --role-name CruddurServiceExecutionRole \
   --policy-document file://aws/policies/cloudwatch-fullaccess-policy.json
 ```
-OR you can also do this(if you dont want to create the JSON policy document THEN attach it to the file).
+***OR you can also do this(if you dont want to create the JSON policy document THEN attach it to the file).***
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurServiceExecutionRole
 ```
 
-### Step 11: Create a CruddurTaskRole and attach a Sessions Manager policy 
-- In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json]() and run the following in the terminal to create the role:
+### Step 12: Create a CruddurTaskRole and attach a Sessions Manager policy 
+- In policies, create a task role, ```CruddurTaskRole``` [aws/policies/service-assume-role-ssm-task-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/assume-role-ssm-task-policy.json) and run the following in the terminal to create the role:
 ```
 aws iam create-role \
     --role-name CruddurTaskRole \
     --assume-role-policy-document file://aws/policies/service-assume-role-ssm-task-policy.json
 ```
 - Confirm that the role was created in the AWS IAM console.
-- We will now create a policy, ```SSMAccessPolicy``` [aws/policies/ssm-task-policy.json]() and attach it to the ```CruddurTaskRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
+- We will now create a policy, ```SSMAccessPolicy``` [aws/policies/ssm-task-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/ssm-task-policy.json) and attach it to the ```CruddurTaskRole``` and run the following in the terminal to create the policy and attch it to the role simultaneously:
 ```
 aws iam put-role-policy \
   --policy-name SSMAccessPolicy \
@@ -299,19 +299,26 @@ aws iam put-role-policy \
   --policy-document file://aws/policies/ssm-task-policy.json
 ```
 
-### Step 12: Create CloudWatch FullAccess policies to the SSM Task Role
-- Attach an existing AWS policy, ```CloudWatch FullAccess``` to the CruddurTaskRole via the CLI.
+### Step 13: AttachCreate CloudWatchFullAccess policy to the SSM Task Role
+- Attach an existing AWS policy, ```CloudWatch FullAccess``` to the ***CruddurTaskRole*** via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/CloudWatchFullAccess --role-name CruddurTaskRole
 ```
+***OR you can also do this***
+```
+aws iam put-role-policy \
+  --policy-name CloudWatchFullAccessPolicy \
+  --role-name CruddurTaskRole \
+  --policy-document file://aws/policies/cloudwatch-fullaccess-policy.json
+```
 
-### Step 13: Create a write policy for the XRAY Daemon to the SSM Task Role
+### Step 14: Create a write policy for the XRAY Daemon to the SSM Task Role
 - Attach an existing AWS policy, ```AWSXRayDaemonWriteAccess``` to the CruddurTaskRole via the CLI.
 ```
 aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess --role-name CruddurTaskRole
 ```
 
-### Step 14: Create a task definition file(this defines how we provision an application)
+### Step 15: Create a task definition file(this defines how we provision an application)
 - A ***task definition*** is like a blueprint for your application. Each time you launch a task in Amazon ECS, you specify a task definition. The service then knows which Docker image to use for containers, how many containers to use in the task, and the resource allocation for each container.
 - Create a Task definition json file in , [aws/task-definitions/backend-flask.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/task-definitions/backend-flask.json)
 ***{Make sure to change the values in the file as per your account, check from the Docker compose file, and the image we created in the ECR repo for the backend}***
@@ -320,11 +327,11 @@ aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AWSXRayDaemonWri
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/backend-flask.json
 ```
-- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the file to ECS to use the newer file)
+- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console ***(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the Task Definition file to ECS to use the newer file)***
 
-# Create a Load Balancer, VPCs and Security groups for the Backend services 
-### Step 15: Prepare our backend container to be deployed to Fargate
-#### Creating a default VPC 
+# Prepare our Backend container to be deployed on ECS Fargate
+## Create a Load Balancer, VPCs and Security groups for the Backend services 
+### Step 15: Creating a default VPC 
 (All these commands should be run in workspace/aws-bootcamp-cruddur)
 - Create a default VPC via the terminal/CLI, i.e find the default VPC and return its VPC ID if True.
 ```
@@ -335,8 +342,19 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 echo $DEFAULT_VPC_ID
 ```
 
-#### Allow HTTP requests
-- Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
+#### Creating a Security Group in the default VPC
+- Create a security group via the terminal/CLI
+```
+export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
+  --group-name "crud-srv-sg" \
+  --description "Security group for Cruddur services on ECS" \
+  --vpc-id $DEFAULT_VPC_ID \
+  --query "GroupId" --output text)
+echo $CRUD_SERVICE_SG
+```
+
+#### Edit the Security Group rules to allow inbound PostgreSQL and HTTP requests
+- Edit the inbound rules for another existing security group, and in the CLI, add in a new rule to allow access from PostgreSQL and add in a source from the CRUD_SERVICE_SG and name it as CruddurServices.
 ```
 aws ec2 authorize-security-group-ingress \
   --group-id $CRUD_SERVICE_SG \
@@ -344,6 +362,15 @@ aws ec2 authorize-security-group-ingress \
   --port 4567 \
   --cidr 0.0.0.0/0
 ```
+- Allow ingress of HTTP requests using port 80, on the CRUD_SERVICE_SG security group we created above,paste into the terminal:
+```
+aws ec2 authorize-security-group-ingress \
+  --group-id $CRUD_SERVICE_SG \
+  --protocol tcp \
+  --port 80 \
+  --cidr 0.0.0.0/0
+```
+
 #### Install Sessions Manager plugin for Linux and access the ECS cluster via the CLI 
 - In the terminal, paste in and enter:
 ```
@@ -358,18 +385,6 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 - Then in ```gitpod.yml``` add the follwoing line to make sure that its set up installed everytime we launch the environment:
 ```
 ```
-#### Creating a Security Group
-- Create a security group via the terminal/CLI
-```
-export CRUD_SERVICE_SG=$(aws ec2 create-security-group \
-  --group-name "crud-srv-sg" \
-  --description "Security group for Cruddur services on ECS" \
-  --vpc-id $DEFAULT_VPC_ID \
-  --query "GroupId" --output text)
-echo $CRUD_SERVICE_SG
-```
-
-- Edit the inbound rules for another existing security group, and in the CLI, add in a new rule to allow access from PostgreSQL and add in a source from the CRUD_SERVICE_SG and name it as CruddurServices.
 
 #### Create a Load Balancer via the console
 - Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer``` > Choose ```Create```
@@ -383,21 +398,20 @@ echo $CRUD_SERVICE_SG
 - Choose ```Create a Load Balancer```
 
 # Launch our ECS Fargate container via the CLI
-### Step 14: Options for creating our ECS cluster for the backend-flask
+### Step 16: Options for creating our ECS cluster for the backend-flask
 #### Option 1: Create our ECS cluster via the console 
-- Choose clusters > Choose the ```cruddur``` cluster > Choose ```create``` > Choose Launch type ```FARGATE``` > Choose the platform version as ```LATEST``` > Choose the Deployment configuration ```Service``` >  Choose Family ```backend-flask``` > Revision ```2(LATEST) ``` > Choose Service type ```Replica``` >
-Desired tasks ```1``` 
+- Choose clusters > Choose the ***cruddur*** cluster > Choose ***create*** > Choose Launch type ***FARGATE*** > Choose the platform version as ***LATEST*** > Choose the Deployment configuration ***Service*** >  Choose Family ***backend-flask*** > Revision ***2(LATEST)*** > Choose Service type ***Replica*** > Desired tasks ***1*** > Networking ***Default VPC*** > 
 
 #### Option 2: 
 - Create an ECS cluster named ***cruddur*** using the terminal, paste in and run:
 ```
 aws ecs create-cluster \
---cluster-name cruddur \
---service-connect-defaults namespace=cruddur
+  --cluster-name cruddur \
+  --service-connect-defaults namespace=cruddur
 ```
 
-#### Option 2: Create our ECS cluster via the CLI 
-- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask]()
+#### Option 3: Create our ECS cluster via the CLI 
+- Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-backend-flask.json)
 ```
 {
     "cluster": "cruddur",
@@ -435,7 +449,7 @@ aws ecs create-cluster \
   ```
 
 - Get the ```securityGroup IDs``` and the ```subnet IDs``` from the ***AWS EC2 > Network and Security > Security Groups*** console and paste into the code above or use the CLI
-- To get VPC ID
+- To ***get VPC ID***
 ```
 export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --filters "Name=isDefault, Values=true" \
@@ -443,7 +457,7 @@ export DEFAULT_VPC_ID=$(aws ec2 describe-vpcs \
 --output text)
 echo $DEFAULT_VPC_ID
 ```
--  To fill in the ***subnet IDs*** above run the following in the CLI and copy the values(optionally you can look in the console)
+-  To fill in the ***subnet IDs*** above run the following in the CLI and copy the values(optionally you can get the values from the AWS EC2 the console)
 ```
 export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
  --filters Name=vpc-id,Values=$DEFAULT_VPC_ID \
@@ -451,7 +465,13 @@ export DEFAULT_SUBNET_IDS=$(aws ec2 describe-subnets  \
  --output json | jq -r 'join(",")')
 echo $DEFAULT_SUBNET_IDS
 ```
-
+- To ***get Security Group IDs*** run the following:
+```
+export CRUD_CLUSTER_SG=$(aws ec2 describe-security-groups \
+--group-names cruddur-ecs-cluster-sg \
+--query 'SecurityGroups[0].GroupId' \
+--output text)
+```
 - In the terminal,paste and run:
 ```
 aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
