@@ -244,9 +244,9 @@ aws ssm put-parameter --type "SecureString" --name "/cruddur/backend-flask/OTEL_
 
 - Go to ***AWS Systems Manager > Application Management > Parameter Store*** to make sure that the values were correctly set.
 
-### Step 9: Create an ECS role for our Task Definition file and attach a policy that will allow ECS to execute the Task Definition
-- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/service-execution-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/service-execution-policy.json)
-- The policy will allow ECS to execute the Task Definition file that we will create below:
+### Step 9: Create an ECS role for our Task Definition file and attach a policy that will allow the ECS role to execute the Task Definition
+- In policies, create a service execution role, ```CruddurServiceExecutionRole``` [aws/policies/assume-role-execution-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/assume-role-execution-policy.json)
+- The policy will allow ECS to assume a role to execute the Task Definition file that we will create below:
 - Run the following in the terminal to create the role:
 ```
 aws iam create-role \    
@@ -254,7 +254,7 @@ aws iam create-role \
 --assume-role-policy-document file://aws/policies/service-execution-policy.json
 ```
 - Confirm that the role was created in the AWS IAM console.
-- We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json]() and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
+- We will now create a policy, ```CruddurServiceExecutionPolicy``` [aws/policies/service-execution-policy.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/policies/service-execution-policy.json) and attach it to the ```CruddurServiceExecutionRole``` and run the following in the terminal to create the policy and attach it to the role simultaneously:
 ```
 aws iam put-role-policy \
   --policy-name CruddurServiceExecutionPolicy \
