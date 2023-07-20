@@ -578,7 +578,10 @@ aws ecs list-tasks --cluster cruddur
 
 # FOR THE FRONTEND
 # Create an Elastic Container Repository (ECR) 
-### Step 1: Create an Elastic Container Repository(ECR) via the CLI
+### Step 1: create a new Dockerfile prod for the frontend
+- To create static files when we build 
+
+### Step 2: Create an Elastic Container Repository(ECR) for the Frontend via the CLI
 #### Create a Private Repository via the CLI
 - To create a repository ```frontend-react-js``` in ECR:
 ```
@@ -595,11 +598,25 @@ echo $ECR_FRONTEND_REACT_URL
 ```
 
 #### Log in to ECR via CLI
- - Login to our ECR repo we created abovefor the Python base-image so that we can push images to the repository.
+ - Login to our ECR repo we created above for the React-image so that we can push images to the repository.
  
  ```
  aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
+
+### Step 3: Push a React Image to the container we created above for the frontend
+#### Tag image
+```docker tag frontend-react-js:latest $ECR_FRONTEND_REACT_URL:latest```
+
+#### Push image
+```docker push $ECR_FRONTEND_REACT_URL:latest```
+
+#### Test the front-end 
+- Start the backend and the database images via the Docker icon then,
+- Test the front-end by running the following command in the terminal:
+```
+docker run --rm -p 3000:3000 -it frontend-react-js 
+```
 
 #### Create an nginx file
 - In ```frontend-react.js``` , create a file [frontend-react.js/nginx.conf]()
@@ -622,20 +639,6 @@ docker build \
 
 - Inspect the container using
 ``` docker inspect <container id>```
-
-### Step 3: Push a React Image to the container we created above for the frontend
-#### Tag image
-```docker tag frontend-react-js:latest $ECR_FRONTEND_REACT_URL:latest```
-
-#### Push image
-```docker push $ECR_FRONTEND_REACT_URL:latest```
-
-#### Test the front-end 
-- Start the backend and the database images via the Docker icon then,
-- Test the front-end by running the following command in the terminal:
-```
-docker run --rm -p 3000:3000 -it frontend-react-js 
-```
 
 # Prepare our Frontend Container to be deployed to Fargate
 ### Step 4: Create an ECS Task Definition file for Fargate
