@@ -716,7 +716,8 @@ Add in a port range ```4567``` for the backend Load Balancer
 
 - On Listeners and routing choose to listen on HTTP port 3000
 
-#### Option 1: Create our ECS cluster with Service connect from the CLI
+# Launch our ECS Fargate container via the CLI
+#### Step 7: Create our ECS cluster with Service connect from the CLI
 - Create a new file in ```aws/json``` use the following [aws/json/service-frontend-react-js.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-frontend-react-js.json)
 
 - Paste in the following into the terminal create the service:
@@ -724,9 +725,8 @@ Add in a port range ```4567``` for the backend Load Balancer
 aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
 ```
 - Login AWS ECS clusters to make sure that its been launched.
-  
 
-
+### Step 8: Access our container via SSH
 #### Connect to the Frontend ECS cluster container
 - Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
 - In the terminal, run 
@@ -738,8 +738,6 @@ chmod u+x ./bin/ecs/connect-to-frontend-react-js
 ./bin/ecs/connect-to-service <task-id/arn number of the service
 ```
 - Test curl localhost:3000
-
-
 
 #### Run the Frontend image
 - We will run the container before we can test it.
