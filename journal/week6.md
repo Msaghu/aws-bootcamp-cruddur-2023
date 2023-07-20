@@ -392,15 +392,25 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 ```
 
 #### Create a Load Balancer via the console
-- Go to EC2 console > Click on ```Load Balancers``` > From the console choose ```Aplication Load balancer``` > Choose ```Create```
-- In Basic configuration add the Load balancer name ```cruddur-alb``` > For scheme choose ```Internet-facing``` > For IP address type, choose ```IPv4``` > iN network mapping, leave the ```default VPC``` > Map to all our subnets so choose them all > 
-***Create a NEW Security group, for security group name ```cruddur-alb- sg``` > For description ```cruddur-alb- sg``` > Leave VPC as default > In inbound rules, allow traffic from HTTP and HTTPS anywhere***
-- Copy its Security group ID
-***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we created above, from ports 4567.}***
-- In Security groups, choose the Load balancer we created above in ```cruddur-alb- sg``` only.
-***Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-backend-flask-tg``` > Listen on port 4567 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create***
-- On Listeners and routing choose to listen on HTTP port 3000 
-- Choose ```Create a Load Balancer```
+- In the AWS console, search for EC2
+- Go to ***Load Balancers*** > Choose the ***Application Load Balancer*** > In ***Load balancer name*** add in cruddur-alb > Set it as ***Internet-facing*** > IP address type as ***IPv4*** > In ***Network mapping***, choose all our existing subnets that we created in the default VPC
+- Choose ***Create new security group*** as ```cruddur-alb-sg``` > In the description section add ***cruddur-alb-sg*** > Leave VPC as default > In inbound rules, allow traffic from ***HTTP and HTTPS*** source as anywhere
+
+***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we have created, from ports 4567.}***
+- In Security groups, choose the Security Group we created above in ***crud-srv-sg***. ***This is because we want all incoming traffic to our application to come through the Load balancer only.***
+Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***4567*** > Name it as ***Cruddur ALB***
+
+- Choose the Security group for the ALB as the newly created ***cruddur-alb-sg***
+ 
+***Create a NEW target group***
+- In ***Listeners and routing*** > Choose Protocol as ***HTTP*** > Choose Listener on ***port 4567*** > Choose ***Default action as the target group we will create below***
+- In the EC2 console, choose ***Target groups*** > Where target type is ***IP addresses*** > Add Target group name ***cruddur-backend-flask-tg*** > Listen on Protocol HTTP ***port 4567*** > Leave IP address type, VPC, Protocol version as defaults values > Choose health check path as ***/api/health-check*** > Set threshold times as ***3s*** > Choose ***Create***
+
+Frontend
+- In ***Listeners and routing*** > Choose ***create New listener*** > Choose Protocol as ***HTTP*** > Choose Listener on ***port 3000*** > Choose ***Default action as the frontend target group we will create below***
+- In the EC2 console, choose ***Target groups*** > Where target type is ***IP addresses*** > Add Target group name ***cruddur-frontendreact-js-tg*** > Listen on Protocol HTTP ***port 3000*** > Leave IP address type, VPC, Protocol version as defaults values > Choose health check path as ***/api/health-check*** > Set threshold times as ***3s*** > Choose ***Create***
+
+- Choose ***Create a Load Balancer***
 
 # Launch our ECS Fargate container via the CLI
 ### Step 16: Options for creating our ECS cluster for the backend-flask
@@ -415,7 +425,7 @@ aws ecs create-cluster \
   --service-connect-defaults namespace=cruddur
 ```
 
-#### Option 3: Create our ECS cluster as a script
+#### Option 3: Create our ECS cluster from a script
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-backend-flask.json)
 ```
 {
@@ -482,36 +492,10 @@ export CRUD_CLUSTER_SG=$(aws ec2 describe-security-groups \
 aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
 ```
 
-### Step 16: Access our container via SSH
-#### Option 1: Create a Sessions Manager script that will allow us to SSH into our container
-- We can access the ECS cluster container using the bash terminal to view the status of the cluster tasks and to check to make sure that the container is healthy.:
-```
-aws ecs execute-command \
-  --region $AWS_REGION \
-  --cluster cruddur \
-  --task <task ARN ID> \
-  --container backend-flask \
-  --command "/bin/bash" \
-  --interactive
-```
+***To test the application in a new tab, use the public IP address in a new tab from the Tasks section and add /healthcheck OR /activities/home at the end of the URL, it should return
+```{"success": true}```***
 
-- If we create a Sessions Manager script, it will look something like:
-- Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-backend-flask)
-- Change the permissions on the file in the terminal :
-```
-chmod u+x ./bin/ecs/connect-to-backend-service
-```
-
-- Execute the command in the terminal to connect to the container:
-```
-./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
-```
-- To list tasks:
-```
-aws ecs list-tasks --cluster cruddur
-```
-
-#### Option 2: Create an ECS cluster with Service Connect from the CLI
+#### Option 4: Create an ECS cluster with Service Connect from the CLI
 - Create a new file in ```aws/json``` use the following [aws/json/service-backend-flask.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-backend-flask.json)
 ```
 {
@@ -548,6 +532,41 @@ aws ecs list-tasks --cluster cruddur
     ]
   }
 }
+```
+- In the terminal,paste and run:
+```
+aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.json
+```
+***To test the application in a new tab, use the public IP address in a new tab from the Tasks section and add /api/healthcheck OR /activities/home at the end of the URL, it should return
+```{"success": true}```***
+
+### Step 16: Access our container via SSH
+#### Option 1: Create a Sessions Manager script that will allow us to SSH into our container
+- We can access the ECS cluster container using the bash terminal to view the status of the cluster tasks and to check to make sure that the container is healthy.:
+```
+aws ecs execute-command \
+  --region $AWS_REGION \
+  --cluster cruddur \
+  --task <task ARN ID> \
+  --container backend-flask \
+  --command "/bin/bash" \
+  --interactive
+```
+
+- If we create a Sessions Manager script, it will look something like:
+- Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-backend-flask)
+- Change the permissions on the file in the terminal :
+```
+chmod u+x ./bin/ecs/connect-to-backend-service
+```
+
+- Execute the command in the terminal to connect to the container:
+```
+./bin/ecs/connect-to-backend-service <task ARN ID> backend-flask
+```
+- To list tasks:
+```
+aws ecs list-tasks --cluster cruddur
 ```
 
 # FOR THE FRONTEND
