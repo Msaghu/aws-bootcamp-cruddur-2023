@@ -394,7 +394,7 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 #### Create a Load Balancer via the console
 - In the AWS console, search for EC2
 - Go to ***Load Balancers*** > Choose the ***Application Load Balancer*** > In ***Load balancer name*** add in cruddur-alb > Set it as ***Internet-facing*** > IP address type as ***IPv4*** > In ***Network mapping***, choose all our existing subnets that we created in the default VPC
-- Choose ***Create new security group*** as ```cruddur-alb-sg``` > In the description section add ***cruddur-alb-sg*** > Leave VPC as default > In inbound rules, allow traffic from ***HTTP and HTTPS*** source as anywhere
+- Choose ***Create new security group*** as ```cruddur-alb-sg``` > In the description section add ***cruddur-alb-sg*** > Leave VPC as default > In inbound rules, allow traffic from ***HTTP, HTTPS, 4567 and 3000*** source as anywhere
 
 ***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we have created, from ports 4567.}***
 - In Security groups, choose the Security Group we created above in ***crud-srv-sg***. ***This is because we want all incoming traffic to our application to come through the Load balancer only.***
@@ -504,6 +504,13 @@ aws ecs create-service --cli-input-json file://aws/json/service-backend-flask.js
   "desiredCount": 1,
   "enableECSManagedTags": true,
   "enableExecuteCommand": true,
+  "LoadBalancers": [
+      {
+          "targetGroupArn": "copy in the targetgrouparn for the backend loadbalancer",
+          "containerName": "backend-flask",
+          "containerPort": 4567
+       }
+  ],
   "networkConfiguration": {
     "awsvpcConfiguration": {
       "assignPublicIp": "ENABLED",
