@@ -398,7 +398,7 @@ curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64
 
 ***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we have created, from ports 4567.}***
 - In Security groups, choose the Security Group we created above in ***crud-srv-sg***. ***This is because we want all incoming traffic to our application to come through the Load balancer only.***
-Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***4567*** > Name it as ***Cruddur ALB***
+Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***4567*** > Name it as ***CruddurALBFrontend***
 
 - Choose the Security group for the ALB as the newly created ***cruddur-alb-sg***
  
@@ -560,7 +560,7 @@ aws ecs execute-command \
   --interactive
 ```
 
-- If we create a Sessions Manager script, it will look something like:
+- If we create a Sessions Manager script, it will look something like:, the script below will allow us to use /bin/bash in the container terminal
 - Create a new file ```connect-to-backend-service``` in [backend-react/bin/ecs/connect-to-backend-service](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-backend-flask)
 - Change the permissions on the file in the terminal :
 ```
@@ -684,7 +684,7 @@ docker run --rm -p 3000:3000 -it frontend-react-js
 ***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
 - In the terminal, run 
 ```chmod u+x ./aws/task-definitions/frontend-react-js.json```
-- In task-definition, make sure to add in the ```health-check``` in the json file, at the container level so that the file looks like this:
+- In task-definition, make sure to add in the ```health-check``` code block below in the json file, at the container level:
 ```
         "healthCheck": {
           "command": [
@@ -704,10 +704,10 @@ aws ecs register-task-definition --cli-input-json file://aws/task-definitions/fr
 - Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console ***(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the Task Definition file to ECS to use the newer file)***
 
 ### Step 6: Create our ECS cluster for the Frontend-flask
-#### Edit theecurity group Inbound rules that will allow requests to the Frontend container from the Load Balancer
+#### Edit the security group Inbound rules that will allow requests to the Frontend container from the Load Balancer
 ***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we have created, from ports 3000}***
 - In Security groups, choose the Security Group we created above in ***crud-srv-sg***. ***This is because we want all incoming traffic to our application to come through the Load balancer only.***
-Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***3000*** > Name it as ***Cruddur ALB***
+Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***3000*** > Name it as ***CruddurALBFrontend***
 Add in a port range ```4567``` for the backend Load Balancer
 
 #### Create a Target group for frontend to the Load Balancer
@@ -728,7 +728,8 @@ aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-j
 
 ### Step 8: Access our container via SSH
 #### Connect to the Frontend ECS cluster container
-- Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
+- Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/bin/ecs/connect-to-frontend-react-js).
+- The script above will allow us to use ```/bin/bash``` in the container terminal
 - In the terminal, run 
 ```
 chmod u+x ./bin/ecs/connect-to-frontend-react-js
@@ -737,17 +738,18 @@ chmod u+x ./bin/ecs/connect-to-frontend-react-js
 ```
 ./bin/ecs/connect-to-service <task-id/arn number of the service
 ```
-- Test curl localhost:3000
+- Test curl in the /bin/sh terminal. by running in the therminal:
+```curl localhost:3000```
 
 #### Run the Frontend image
 - We will run the container before we can test it.
 ``` docker run --rm -p 3000:3000 -it frontend-react-js ```
 
 # Create a custom domain with SSL and Route53
-### Step : Create a Hosted zone in Route 53
-- In the AWS console, go to Route 53 > Go to ***Hosted zones*** > Select ***Create a hosted zone*** > In ***Hosted zone configuration/Domain name*** add in cruddur.com > In ***Type*** choose Public hosted zone then choose ***Create hosted zone***
+### Step 9: Create a Hosted zone in Route 53
+- In the AWS console, go to Route 53 > Go to ***Hosted zones*** > Select ***Create a hosted zone*** > In ***Hosted zone configuration/Domain name*** add in ```cruddur.com``` > In ***Type*** choose Public hosted zone then choose ***Create hosted zone***
 - Open the ```cruddur.com``` page to view the nameservers.
-- If you had bought a domain from a vendor eg GoDaddy, open their name servers page and paste in the values of the nameservers to your domain from Godaddy.
+- If you had bought a domain from a vendor eg GoDaddy, open their name servers page and paste in the values of the nameservers given by AWS Route53  to your domain nameservers from Godaddy.
 
 ### Create a record
 - In the AWS console, go to Route 53 > Go to the cruddur.com host zone and click ***Create record*** > In Quick create record, select ***A record*** > Choose ***alias*** and Route traffic to the Application Load Balancer we created earlier > Select region wehere we created the LB
@@ -783,3 +785,4 @@ chmod u+x ./bin/ecs/connect-to-frontend-react-js
 ## Aditional links 
 1. [Security in AWS ECS](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)
 2. [AWS ECS documentation](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/application.html)
+3. [Free AWS bootcamp Week 6-7](https://www.youtube.com/watch?v=HHmpZ5hqh1I&list=PLBfufR7vyJJ7k25byhRXJldB5AiwgNnWv&index=56)
