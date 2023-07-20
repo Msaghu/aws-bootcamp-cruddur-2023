@@ -404,12 +404,10 @@ Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new ru
  
 ***Create a NEW target group***
 - In ***Listeners and routing*** > Choose Protocol as ***HTTP*** > Choose Listener on ***port 4567*** > Choose ***Default action as the target group we will create below***
-- In the EC2 console, choose ***Target groups*** > Where target type is ***IP addresses*** > Add Target group name ***cruddur-backend-flask-tg*** > Listen on Protocol HTTP ***port 4567*** > Leave IP address type, VPC, Protocol version as defaults values > Choose health check path as ***/api/health-check*** > Set threshold times as ***3s*** > Choose ***Create***
-
-Frontend
-- In ***Listeners and routing*** > Choose ***create New listener*** > Choose Protocol as ***HTTP*** > Choose Listener on ***port 3000*** > Choose ***Default action as the frontend target group we will create below***
-- In the EC2 console, choose ***Target groups*** > Where target type is ***IP addresses*** > Add Target group name ***cruddur-frontendreact-js-tg*** > Listen on Protocol HTTP ***port 3000*** > Leave IP address type, VPC, Protocol version as defaults values > Choose health check path as ***/api/health-check*** > Set threshold times as ***3s*** > Choose ***Create***
-
+- Add another Listener in ***Listeners and routing*** > Choose Listener details as ***HTTP*** > Choose Listener on ***port 80*** > Choose ***Default actions*** Add action ***Forward to*** to > Choose ***Target group*** as the ***cruddur-frontend*** ECS container > Leave the Security policy as the default recommended
+- Add another Listener in ***Listeners and routing*** > Choose Listener details as ***HTTPS*** > Choose Listener on ***port 443*** > Choose ***Default actions*** Add action ***Redirect*** to ***port 443*** > Choose ***Original host, path, query***
+- Choose the ACM/TLS certificate we will create below.
+- Add another Listener in ***Listeners and routing*** > Choose Listener details as  host hearder as ***api.cruddur.com***  > Choose ***Target group*** as the ***cruddur-backend*** ECS container > Leave the Security policy as the default recommended
 - Choose ***Create a Load Balancer***
 
 # Launch our ECS Fargate container via the CLI
