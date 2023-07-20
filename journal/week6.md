@@ -578,8 +578,48 @@ aws ecs list-tasks --cluster cruddur
 
 # FOR THE FRONTEND
 # Create an Elastic Container Repository (ECR) 
-### Step 1: create a new Dockerfile prod for the frontend
-- To create static files when we build 
+### Step 1: create a new Production Dockerfile  for the frontend
+- Create a new file using node, ```Dockerfile.prod``` in [frontend-react-js/Dockerfile.prod](). Which will create static files when we build 
+```
+# Base Image ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM node:16.18 AS build
+
+ARG REACT_APP_BACKEND_URL
+ARG REACT_APP_AWS_PROJECT_REGION
+ARG REACT_APP_AWS_COGNITO_REGION
+ARG REACT_APP_AWS_USER_POOLS_ID
+ARG REACT_APP_CLIENT_ID
+
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+ENV REACT_APP_AWS_PROJECT_REGION=$REACT_APP_AWS_PROJECT_REGION
+ENV REACT_APP_AWS_COGNITO_REGION=$REACT_APP_AWS_COGNITO_REGION
+ENV REACT_APP_AWS_USER_POOLS_ID=$REACT_APP_AWS_USER_POOLS_ID
+ENV REACT_APP_CLIENT_ID=$REACT_APP_CLIENT_ID
+
+COPY . ./frontend-react-js
+WORKDIR /frontend-react-js
+RUN npm install
+RUN npm run build
+
+# New Base Image ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FROM nginx:1.23.3-alpine
+
+# --from build is coming from the Base Image
+COPY --from=build /frontend-react-js/build /usr/share/nginx/html
+COPY --from=build /frontend-react-js/nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 3000
+```
+- In ***RecoverPage.js*** and ***ConfirmationPage.js*** change the line
+```
+setCognitoErrors
+to
+setErrors
+```
+
+#### Create an nginx file
+- In ```frontend-react.js``` , create a file [frontend-react.js/nginx.conf](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/frontend-react-js/nginx.conf)
+- In the frontend-react folder, run ```npm run build```.
 
 ### Step 2: Create an Elastic Container Repository(ECR) for the Frontend via the CLI
 #### Create a Private Repository via the CLI
@@ -604,7 +644,25 @@ echo $ECR_FRONTEND_REACT_URL
  aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
  ```
 
-### Step 3: Push a React Image to the container we created above for the frontend
+### Step 3: Create our frontend image
+#### Build Frontend image locally 
+- Switch to ```frontend-react``` and paste in the following code in the terminal:
+```
+docker build \
+--build-arg REACT_APP_BACKEND_URL="https://4567-$GITPOD_WORKSPACE_ID.$GITPOD_WORKSPACE_CLUSTER_HOST" \
+--build-arg REACT_APP_AWS_PROJECT_REGION="$AWS_DEFAULT_REGION" \
+--build-arg REACT_APP_AWS_COGNITO_REGION="$AWS_DEFAULT_REGION" \
+--build-arg REACT_APP_AWS_USER_POOLS_ID="us-east-hgghnmjdgs" \
+--build-arg REACT_APP_CLIENT_ID="jhgfjgdfjhdgfvdhmnvbfg" \
+-t frontend-react-js \
+-f Dockerfile.prod \
+.
+```
+- Get the values of ```REACT_APP_AWS_PROJECT_REGION``` from the Docker compose file
+- Inspect the container using
+``` docker inspect <container id>```
+
+### Step 4: Push a React Image to the container we created above for the frontend
 #### Tag image
 ```docker tag frontend-react-js:latest $ECR_FRONTEND_REACT_URL:latest```
 
@@ -618,36 +676,11 @@ echo $ECR_FRONTEND_REACT_URL
 docker run --rm -p 3000:3000 -it frontend-react-js 
 ```
 
-#### Create an nginx file
-- In ```frontend-react.js``` , create a file [frontend-react.js/nginx.conf]()
-- In the frontend-react folder, run ```npm run build```.
-
-### Step 2: Create our frontend image
-#### Build Frontend image locally 
-- Switch to ```frontend-react``` and paste in the following code:
-```
-docker build \
---build-arg REACT_APP_BACKEND_URL="https://4567-$GITPOD_WORKSPACE_ID.$GITPOD_WORKSPACE_CLUSTER_HOST" \
---build-arg REACT_APP_AWS_PROJECT_REGION="$AWS_DEFAULT_REGION" \
---build-arg REACT_APP_AWS_COGNITO_REGION="$AWS_DEFAULT_REGION" \
---build-arg REACT_APP_AWS_USER_POOLS_ID="us-east-hgghnmjdgs" \
---build-arg REACT_APP_CLIENT_ID="jhgfjgdfjhdgfvdhmnvbfg" \
--t frontend-react-js \
--f Dockerfile.prod \
-.
-```
-
-- Inspect the container using
-``` docker inspect <container id>```
-
 # Prepare our Frontend Container to be deployed to Fargate
-### Step 4: Create an ECS Task Definition file for Fargate
-#### Create a Production Dockerfile 
-- Create a new file using node, ```Dockerfile.prod``` in [frontend-react-js/Dockerfile.prod]().
-
+### Step 5: Create an ECS Task Definition file for Fargate
 #### Create a Task definition file for the Front-end container
-- To create a task in the container, we will:
-- Create a Task definition json file in , [aws/task-definitions/frontend-react-js.json]()
+- To create a task for the container, we will:
+- Create a Task definition json file in , [aws/task-definitions/frontend-react-js.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/task-definitions/frontend-react-js.json)
 ***{Make sure to change the values in the file as per your account, check from Docker compose file, and the image we created in the ECR repo for the backend}***
 - In the terminal, run 
 ```chmod u+x ./aws/task-definitions/frontend-react-js.json```
@@ -668,18 +701,31 @@ docker build \
 ```
 aws ecs register-task-definition --cli-input-json file://aws/task-definitions/frontend-react-js.json
 ``` 
+- Check the Task definitions in ```AWS ECS > Task definitions``` to ensure its been created in the console ***(REVISIONS will always update when we change the file therefore always make sure to push changes that you make in the Task Definition file to ECS to use the newer file)***
 
-#### Create an ECS cluster with service connect from the CLI
-- Create a new file in ```aws/json``` use the following [aws/json/service-frontend-react-js.json]()
+### Step 6: Create our ECS cluster for the Frontend-flask
+#### Edit theecurity group Inbound rules that will allow requests to the Frontend container from the Load Balancer
+***{We will now edit the rules for the CRUD_SERVICE_SG we created above to only allow traffic from our Load balancer that we have created, from ports 3000}***
+- In Security groups, choose the Security Group we created above in ***crud-srv-sg***. ***This is because we want all incoming traffic to our application to come through the Load balancer only.***
+Choose ***Edit the inbound rules*** > Add a new inbound rule > Choose the new rule as the ***cruddur-alb-sg*** > Choose port range as ***3000*** > Name it as ***Cruddur ALB***
+Add in a port range ```4567``` for the backend Load Balancer
 
-#### Create the service
+#### Create a Target group for frontend to the Load Balancer
+- In ***Listeners and routing*** > Choose ***create New listener*** > Choose Protocol as ***HTTP*** > Choose Listener on ***port 3000*** > Choose ***Default action as the frontend target group we will create below***
+- In the EC2 console, choose ***Target groups*** > Where target type is ***IP addresses*** > Add Target group name ***cruddur-frontendreact-js-tg*** > Listen on Protocol HTTP ***port 3000*** > Leave IP address type, VPC, Protocol version as defaults values > Choose health check path as ***/api/health-check*** > Set threshold times as ***3s*** > Choose ***Create***
+
+- On Listeners and routing choose to listen on HTTP port 3000
+
+#### Option 1: Create our ECS cluster with Service connect from the CLI
+- Create a new file in ```aws/json``` use the following [aws/json/service-frontend-react-js.json](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/json/service-frontend-react-js.json)
+
+- Paste in the following into the terminal create the service:
 ```
 aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
 ```
+- Login AWS ECS clusters to make sure that its been launched.
+  
 
-#### Create a Target group for frontend to the Load Balancer
-- Create a NEW target group, where target type is ```IP addresses``` > Add Target group name ```cruddur-frontend-react-js``` > Listen on HTTP port 3000 > Leave IP address type, VPC, Protocol version as defaults values > Choose halth check path as ```/api/health-check``` > Set threshold times as 3s > Create
-- On Listeners and routing choose to listen on HTTP port 3000 
 
 #### Connect to the Frontend ECS cluster container
 - Create a new file, ```frontend-react-js``` in ```backend-flask/bin/ecs```, [backend-flask/bin/ecs/connect-to-frontend-react-js]().
@@ -693,16 +739,7 @@ chmod u+x ./bin/ecs/connect-to-frontend-react-js
 ```
 - Test curl localhost:3000
 
-### Step 3: Create our ECS cluster for the Frontend-flask
-#### Create our ECS cluster via the console for the Frontend-react
-- Paste in the code into the terminal to provision a container for the front end, without a Load Balancer.
-```
-aws ecs create-service --cli-input-json file://aws/json/service-frontend-react-js.json
-```
-- Login AWS ECS clusters to make sure that its been launched.
 
-#### Create a Security group that will allow requests to the Frontend container form the Load Balancer
-- In the AWS ECS console, in the front-end-react Networking tab, ```Security Groups``` > Choose ```Edit inbound rule``` > Add in a port range ```3000``` for the frontend Load Balancer > Add in a port range ```4567``` for the backend Load Balancer
 
 #### Run the Frontend image
 - We will run the container before we can test it.
