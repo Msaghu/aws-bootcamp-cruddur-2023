@@ -2,11 +2,33 @@
 
 ## Introduction
 
+**What is AWS RDS?**
+- AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
+- When create a database we need to be sure that it has been created in the same region where our account is.
+- You can create and modify a DB instance by using the AWS Command Line Interface (AWS CLI), the Amazon RDS API, or the AWS Management Console.
+- Amazon RDS is responsible for hosting the software components and infrastructure of DB instances and DB cluster. We are responsible for query tuning, which is the process of adjusting SQL queries to improve performance.
+- We can run our DB instance in several Availability Zones, an option called a Multi-AZ deployment. When we choose this option, Amazon automatically provisions and maintains one or more secondary standby DB instances in a different Availability Zone. Your primary DB instance is replicated across Availability Zones to each secondary DB instance.
+- We use security groups to control the access to a DB instance. It does so by allowing access to IP address ranges or Amazon EC2 instances that you specify.
+
+**DB engines**
+- A DB engine is the specific relational database software that runs on your DB instance. Amazon RDS currently supports the following engines:
+
+-MariaDB
+
+-Microsoft SQL Server
+
+-MySQL
+
+-Oracle
+
+-PostgreSQL
+
 **Why AWS RDS Postgres over AWS Aurora?**
+- For the purposes , we went for our use case and so that we can be better acquinted with SQL databases.
 
 ## Prerequisites
 1. AWS Free Tier account
-2. AWS CLI on your local environment
+2. AWS CLI installed on your local environment
 3. Knowledge of SQL and PostgreSQL.
 
 ## Use Cases
@@ -18,47 +40,22 @@
 4. Durability
 
 ## Tasks
-- Provision an RDS instance
-- Temporarily stop an RDS instance
-- Remotely connect to RDS instance
-- Programmatically update a security group rule
-- Write several bash scripts for database operations
-- Operate common SQL commands
-- Create a schema SQL file by hand
-- Work with UUIDs and PSQL extensions
-- Implement a postgres client for python using a connection pool
-- Troubleshoot common SQL errors
-- Implement a Lambda that runs in a VPC and commits code to RDS
-- Work with PSQL json functions to directly return json from the database
-- Correctly sanitize parameters passed to SQL to execute
+1. Provision an RDS instance
+2. Temporarily stop an RDS instance
+3. Remotely connect to RDS instance
+4. Programmatically update a security group rule
+5. Write several bash scripts for database operations
+6. Operate common SQL commands
+7. Create a schema SQL file by hand
+8. Work with UUIDs and PSQL extensions
+9. Implement a postgres client for python using a connection pool
+10. Troubleshoot common SQL errors
+11. Implement a Lambda that runs in a VPC and commits code to RDS
+12. Work with PSQL json functions to directly return json from the database
+13. Correctly sanitize parameters passed to SQL to execute
   
-### Security for Amazon RDS and Postgres
-**What are the different types of Amazon RDS Databse Engines?**
-- Amazon Aurora
-- MySQL
-- MariaDB
-- PostreSQL
-- Oracle
-- Microsoft SQL Server
-
-**Security best practises - AWS**
-- Use VPCs: Use Amazon Virtula Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet.
-- Compliance standard is what the business requires.
-- RDS Instances should only be in the AWS region that you are legally allowed to be holding user data in.
-- Amazon Oranisations SCP - to manage RDS deletion, RDS creation, region lock, RDS encryption enforced.
-- AWS CloudTrail is enabled and monitored to trigger alerts on malicious RDS behaviour by an identity in AWS.
-- Amazon Guard Duty is enabled in the account and region of RDS.
-
-**Security best practises - Application/Developer**
-- RDS instance to use appropriate authentication - Use IAM authentication, kerberos 
-- Database User Lifecycle Management - Create, Modify, Delete Users
-- Security Group to be restrictedonly to known IPs
-- Not have RDS be internet accessible
-- Encryption in Transit for comms between Apps and RDS
-- Secret Management - Master user password can be used with AWS Secrets Manager to automatically rotate the secrets for the Amazon RDS.
-
-### Spin up an PostgreSQL RDS(Relational Database System) via the AWS Console
-**Step 1 - Provision an RDS instance**
+# Spin up an PostgreSQL RDS(Relational Database System) 
+### Step 1 - Provision an RDS instance via the AWS Console
 - We will first have to spin up an RDS instance on AWS then stop it.
 1. Search for RDS and choose **Create database**
 2. On **Engine options**, choose Postgres
@@ -66,9 +63,9 @@
 4. Choose the **Instance configuration**
 5. For **Storage**, leave the default option.
 6. For **Connectivity** and **Network type** leave the default options.
-7. For **Public Access** , allow public access
+7. For **Public Access** , allow public access because we are in development stage and we want to avoid associated costs that we might incur if we run it in private access.
 8. Use the **Default VPC** security group.
-9. For **Database port**, leave it as the default 5432
+9. For **Database port**, leave it as the default 5432(can be changed to another port number for security)
 10. For **Database authentication**, aloow for password authentication.
 11. As for Monitoring, so that we can see 
 12. We will turn off Backup, which is whnen AWS takes a snapshot of th DB for backup whuich reduces costs 
@@ -76,9 +73,8 @@
 14. Do not enable **Log exports**
 15. Do not **Enable Deletion protection**, which for production should be turned on for backup purposes.
 
-
-### Provision RDS Instance
-**Step 2 - Use the AWS CLI in Gitpod to create a RDS instance and create a Cruddur database in the instance**
+### Step 2 - Use the AWS CLI in Gitpod to create a RDS instance and create a Cruddur database in the instance
+- Run ``aws sts get-caller-identity``` in the terminal to make sure that our values have been set.
 - Use the following command to create an RDS instance via the CLI, notice that the commands follow the set up in Step 1.
 ```
 aws rds create-db-instance \
@@ -102,33 +98,35 @@ aws rds create-db-instance \
   --no-deletion-protection
 ```
 
+### Step 3 - Temporarily stop an RDS instance
 - Switch over to the AWS Console and view the creation process of the database instance. 
 - When the database instance has been fully created, the status will read created.
 - Click into the Database instance and in the Actions tab Stop temporarily, it is stopped for 7 days (be sure to check on it after 7 days).
  
-### Remotely connect to RDS instance
-**Step 3 - Create a local Cruddur Database in PostgreSQL**
-- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,( we added Postgres into the Docker-compose file in the earlier weeks).
+### Step 4 - Remotely connect to RDS instance
+#### Create a local Cruddur Database in PostgreSQL**
+- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks)**.
 - Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, run the following commands:
 ```
 sudo apt update
 sudo apt install -y postgresql-client-12 OR
 sudo apt install -y postgresql-client-13/14
 psql -Upostgres --host localhost
-(When it prompts for password enter: ***password***
+(When it prompts for password enter: ***password***)
 ```
 
 - Then to list existing databases run ```\l```
 - To create a new database called cruddur we will run
 ``` CREATE database cruddur; ```
 
-- As opposed to how we created the Database schema manually in our Dev.to tutorial , link below, here we will import it/ use a premade
+- As opposed to how we created the Database schema manually in our [https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig](Dev.to) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
 - We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**
--Paste the following into the schema.sql 
+-Paste the following into the schema.sql, to create UUID( along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
+
 ***LONG METHOD (where we do not have to input the password each time)***
 - To create the extension located in the schema.sql file, change(cd) into backend-flask then run the following command(if prompted for password enter password):
 ```
@@ -155,26 +153,6 @@ psql $CONNECTION_URL
 - In the terminal, paste in the following (we should still be in backend-flask) to set as an environment variable:
 ```
 gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddur"
-```
-
-**Common PostgreSQL commands**
-```
-\x on -- expanded display when looking at data
-\q -- Quit PSQL
-\l -- List all databases
-\c database_name -- Connect to a specific database
-\dt -- List all tables in the current database
-\d table_name -- Describe a specific table
-\du -- List all users and their roles
-\dn -- List all schemas in the current database
-CREATE DATABASE database_name; -- Create a new database
-DROP DATABASE database_name; -- Delete a database
-CREATE TABLE table_name (column1 datatype1, column2 datatype2, ...); -- Create a new table
-DROP TABLE table_name; -- Delete a table
-SELECT column1, column2, ... FROM table_name WHERE condition; -- Select data from a table
-INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...); -- Insert data into a table
-UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition; -- Update data in a table
-DELETE FROM table_name WHERE condition; -- Delete data from a table
 ```
 
 ### Step 4 - Bash Scripting
@@ -590,6 +568,43 @@ You can customize your users' experience by using Lambda functions to respond to
 psql: error: could not connect to server: No such file or directory
         Is the server running locally and accepting
         connections on Unix domain socket "/var/run/postgresql/.s.PGSQL.5432"?
+```
+
+### Security for Amazon RDS and Postgres
+**Security best practises - AWS**
+- Use VPCs: Use Amazon Virtual Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet. While creat9ing security groups, NEVER allow inbound traffic from the internet, but rather only from known IP adderesses.
+- Compliance standard is what the business requires.
+- RDS Instances should only be in the AWS region that you are legally allowed to be holding user data in.
+- Amazon Organisations SCP - to manage RDS deletion, RDS creation, region lock, RDS encryption enforced.
+- AWS CloudTrail is enabled and monitored to trigger alerts on malicious RDS behaviour by an identity in AWS.
+- Amazon Guard Duty is enabled in the account and region of RDS.
+
+**Security best practises - Application/Developer**
+- RDS instance to use appropriate authentication - Use IAM authentication, kerberos 
+- Database User Lifecycle Management - Create, Modify, Delete Users
+- Security Group to be restricted only to known IPs
+- Should not have the RDS be internet accessible
+- Encryption in Transit for comms between Apps and RDS
+- Secret Management - Master user password can be used with AWS Secrets Manager to automatically rotate the secrets for the Amazon RDS.
+
+**Common PostgreSQL commands**
+```
+\x on -- expanded display when looking at data
+\q -- Quit PSQL
+\l -- List all databases
+\c database_name -- Connect to a specific database
+\dt -- List all tables in the current database
+\d table_name -- Describe a specific table
+\du -- List all users and their roles
+\dn -- List all schemas in the current database
+CREATE DATABASE database_name; -- Create a new database
+DROP DATABASE database_name; -- Delete a database
+CREATE TABLE table_name (column1 datatype1, column2 datatype2, ...); -- Create a new table
+DROP TABLE table_name; -- Delete a table
+SELECT column1, column2, ... FROM table_name WHERE condition; -- Select data from a table
+INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...); -- Insert data into a table
+UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition; -- Update data in a table
+DELETE FROM table_name WHERE condition; -- Delete data from a table
 ```
 
 ## Next Steps - Additional Homework Challenges
