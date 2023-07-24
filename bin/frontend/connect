@@ -2,7 +2,7 @@
 set -e #stop if it fails at any point
 
 if [ -z "$1" ]; then
-    echo "No TASK_ID argument supplied eg ../bin/ecs/connect-to-service-frontend--react-js <task ARN> "
+    echo "No TASK_ID argument supplied eg ../bin/ecs/connect-to-service-frontend--react-js <ecs task ARN> "
     exit 1
 fi 
 TASK_ID=$1

@@ -6,10 +6,11 @@ LABEL="db-seed"
 printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
 
 ABS_PATH=$(readlink -f "$0")
-BUILD_PATH=$(dirname $ABS_PATH)
-seed_path=$(dirname $BUILD_PATH)
-
-#seed_path="$(realpath .)/db/seed.sql"
+DB_PATH=$(dirname $ABS_PATH)
+BIN_PATH=$(dirname $DB_PATH)
+PROJECT_PATH=$(dirname $BIN_PATH)
+BACKEND_FLASK_PATH="$PROJECT_PATH/backend-flask"
+seed_path="$BACKEND_FLASK_PATH/db/seed.sql"
 echo $seed_path
 
 if [ "$1" = "prod" ]; then
