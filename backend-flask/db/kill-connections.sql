@@ -4,4 +4,4 @@ WHERE
 -- dont kill my own connection
 pid <> pg_backend_pid()
 -- dont kill the connections to other databases
-AND database = "cruddur";
+AND datname = 'cruddur';
