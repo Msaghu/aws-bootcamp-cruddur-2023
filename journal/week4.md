@@ -507,7 +507,7 @@ results = db.query_array_json("""
 - Then we will change our database password within the console.
 - In the terminal, run ```echo $PROD_CONNECTION_URL``` and copy the output provided.
 
-**Testing remote access to the RDS instance**
+#### Testing remote access to the RDS instance
 - Then to test remote access , we will paste the command below ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password of your choosing.
 ***@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com is the RDS Endpoint port (get this value from the RDS console page of the cruddur database)***
 ``` 
@@ -532,25 +532,24 @@ psql $PROD_CONNECTION_URL
 
 - The first line will work but the second will hang until we add an inbound rule for the RDS instance Security Group.
 
-**Edit the VPC inbound rules***
+#### Edit the VPC inbound rules
 - Determine our Gitpod IP address by running in the terminal (run line 1) then set it as an environment variable using line 2:
 ```
 curl ifconfig.me
-GITPOD_IP=$(curl ifconfig.me)
+export GITPOD_IP=$(curl ifconfig.me)
 echo $GITPOD_IP
 ```
-We will use this below:
+- Copy the output and paste it as the ip address in the AWS inbound rules section.
 - To enable it, we need to edit the inbound rules for the RDS VPC.
 - Go to the AWS RDS Console and in the ```Connectivity``` section, choose it then click on ```inbound rules```
-- We will edit the inbound rules, add **TYpe** as PostgreSQL ,>  **Source** as Custom > Decsription as **GITPOD**
+- We will edit the inbound rules, add **TYpe** as PostgreSQL ,>  **Source** as Custom and add the IP as the value of ***echo $GITPOD_IP***> Decsription as **GITPOD**
 
-- Copy the output and paste it as the ip address in the AWS inbound rules section.
 - Running ```psql $PROD_CONNECTION_URL``` in the terminal will now work.
 ***Incase you are still unable to access the database using $PROD_CONNECTION_URL, try changing the following $PROD_CONNECTION_URL variable(instead of cruddurroot, we use root)
 export PROD_CONNECTION_URL="postgresql://root:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
 gp env PROD_CONNECTION_URL="postgresql://root:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"***
 
-**Permanently setting the GITPOD.IO variables**
+#### Permanently setting the GITPOD.IO variables for the Security group
 - Change the values with the appropriate vaules of the ```security group id``` and ```security group rule id```, which you will get from the AWS Console for the Security group that was created above.
 - Paste the following into the terminal to set:
 ```
@@ -561,17 +560,38 @@ export DB_SG_RULE_ID="sgr-76cgcgvbvbnvnvnvnn"
 gp env DB_SG_RULE_ID="sgr-76cgcgvbvbnvnvnvnn"
 ```
 
-- Create an inbound rule that allows internet from evrywhere, 0.0.0.0/0 and test it by running the code below:
+- Create an inbound rule that allows internet from evrywhere, 0.0.0.0/0 and test that it is changed when we run the code below:
 ```
 aws ec2 modify-security-group-rules \
     --group-id $DB_SG_ID \
     --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$GITPOD_IP/32}"
 ```
+***For $DB_SG_ID-copy the Security Group ID from the Security group we created above,
+For $DB_SG_RULE_ID-copy the Security Group Rule ID for the rule that allows the traffic from our GITPO/environment IP address***
+- To make sure that this Security group is always updated, we will create a bash script from the code abive to always update its IP whenever we spin up a new Gitpod environment.
+- Create a script in [bin/rds-update-sg-rule](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/tree/main/bin/rds):
+```
+#! /usr/bin/bash
 
+CYAN='\033[1;36m'
+NO_COLOR='\033[0m'
+LABEL="rds-update-sg-rules"
+printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
 
+aws ec2 modify-security-group-rules \
+    --group-id $DB_SG_ID \
+    --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={Description=GITPOD,IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$GITPOD_IP/32}"
+```
+-Change its permissions to make its executable
+- In ```Gitpod.yml``` add the bash script so that it runs everytime we start up the environment:
+```
+command: |
+      export GITPOD_IP=$(curl ifconfig.me)
+      source  "$THEIA_WORKSPACE_ROOT/bin/rds/update-sg-rules"
+```
 
-### Implementing a Custom authorizer for Cognito
-***STEP 10 - Cognito Post Confirmation Lambda***
+# Implementing a Custom authorizer for Cognito
+### STEP 10 - Cognito Post Confirmation Lambda
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
 - Create a new file in the aws folder named ```cruddur-post-confirmation``` and paste in:
 
@@ -641,11 +661,6 @@ You can customize your users' experience by using Lambda functions to respond to
 - This will redirect you to AWS CloudWatch, choose the log groups
 - Then choose ```AWS/lambda/cruddur-post-confirmation``` tab and view the logs.
 - We will then set the VPC for the cruddur function in lambda otherwise when we try to sign up, it will always time out.
-- 
-
-
-
-
 
 **Errors encountered**
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
