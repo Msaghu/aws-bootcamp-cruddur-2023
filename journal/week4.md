@@ -317,7 +317,6 @@ CREATE TABLE public.activities (
 );
 ```
 
-
 - The drop table lines will make sure that if there are any existing tables in the database, they are deleted first before the new tables are created.
 
 ### STEP 7 - Seeding/Adding data to the tables
@@ -416,6 +415,8 @@ source "$bin_path/db-schema-load"
 source "$bin_path/db-seed"
 ```
 
+# Interact with the Postres database
+
 **To install the Python postgresql client**
 - We will install the binaries by pasting the following into ```requirements.txt``
 ```
@@ -423,15 +424,16 @@ psycopg[binary]
 psycopg[pool]
 ```
 
-- Then running ```pip install requirements.txt``` in the terminal.
+- Then running ```pip install -r requirements.txt``` in the terminal.
 
-**Database Creation pool**
+**Database Connection pools**
 - We will now create a **connection pool**(connection pooling is the process of having a pool of active connections on the backend servers. These can be used any time a user sends a request. Instead of opening, maintaining, and closing a connection when a user sends a request, the server will assign an active connection to the user.)
-- Create a file called in lib called, ```db.py``` (backend-flask/lib/db.py) and paste in:
+- Create a file called in lib called, ```db.py``` [backend-flask/lib/db.py]((https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/lib/db.py) and paste in:
 ```
 from psycopg_pool import ConnectionPool
 import os
 
+#lets postgres change sql to json
 def query_wrap_object(self, template):
   sql = f"""
   (SELECT COALESCE(row_to_json(object_row),'{{}}'::json) FROM (
@@ -440,6 +442,7 @@ def query_wrap_object(self, template):
   """
   return sql
 
+#lets postgres change sql to json
 def query_wrap_array(self, template):
   sql =  f"""
   (SELECT COALESCE(array_to_json(array_agg(row_to_json(array_row))),'[]'::json) FROM (
@@ -452,20 +455,61 @@ connection_url = os.getenv("CONNECTION_URL")
 pool = ConnectionPool(connection_url)
 ```
 
-- Then pass it in our docker-compose file by passing in the connection string:
-``` CONNECTION_URL: "${PROD_CONNECTION_URL}" ```
+- Then pass it in our ```docker-compose file``` by passing in the connection string, environment section:
+``` CONNECTION_URL: "${CONNECTION_URL}" ```
 
 - Then pass it in ```home-activities.py```:
 ```from lib.db import pool```
+and add in
+```
+sql = query_wrap_array("""
+SELECT * FROM activities
+""")
+with pool.connection() as conn:
+        with conn.cursor() as cur:
+          cur.execute(sql)
+          # this will return a tuple
+          # the first field being the data
+          json = cur.fetchall()
+      return json[0]
+```
 
-### STEP 9 - Connecting to the Cruddur Database RDS instance
+- Then run ```docker compose up```
+- Check that the backend container is running
+- Remove the logging by X-Ray by commenting it out in ```app.py``` and in ```home-activities.py```
+***If we get the errors in the backend check that the connection url was passed into the container***
+- In ```home-activities.py``` paste in the follwoing code block:
+```
+results = db.query_array_json("""
+      SELECT
+        activities.uuid,
+        users.display_name,
+        users.handle,
+        activities.message,
+        activities.replies_count,
+        activities.reposts_count,
+        activities.likes_count,
+        activities.reply_to_activity_uuid,
+        activities.expires_at,
+        activities.created_at
+      FROM public.activities
+      LEFT JOIN public.users ON users.uuid = activities.user_uuid
+      ORDER BY activities.created_at DESC    
+    """)
+##    span.set_attributes("app.result_length", len(results))
+    return results
+```
+- Our frontend application via the tab should show a query as a post with the username
+
+  
+### STEP 9 - Connecting to the Cruddur Database Production RDS instance
 - We will turn on our database via the AWS RDS console 
 - Then we will change our database password within the console.
 - In the terminal, run ```echo $PROD_CONNECTION_URL``` and copy the output provided.
 
 **Testing remote access to the RDS instance**
-- Then to test remote access , we will paste the following command ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password of your choosing.
-- **@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com** os the RDS Endpoint port (get this value from the RDS console page of the cruddur database)
+- Then to test remote access , we will paste the command below ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password of your choosing.
+***@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com is the RDS Endpoint port (get this value from the RDS console page of the cruddur database)***
 ``` 
 postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur
 ```
@@ -473,7 +517,10 @@ postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-ce
 - Then set it as an envrionment variable in the system by:
 ```
 export PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
+
 gp env PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
+
+env | grep PROD 
 ```
 
 - Test that you can connect to the database by running in the terminal:
@@ -483,16 +530,19 @@ then
 psql $PROD_CONNECTION_URL
 ```
 
-- The first line will work but the second will hang.
+- The first line will work but the second will hang until we add an inbound rule for the RDS instance Security Group.
 
 **Edit the VPC inbound rules***
-- To enable it, we need to edit the inbound rules for the RDS VPC.
-- Go to the AWS Console and in the ```Connectivity``` section, choose it then click on ```inbound rules```
 - Determine our Gitpod IP address by running in the terminal (run line 1) then set it as an environment variable using line 2:
 ```
 curl ifconfig.me
 GITPOD_IP=$(curl ifconfig.me)
+echo $GITPOD_IP
 ```
+We will use this below:
+- To enable it, we need to edit the inbound rules for the RDS VPC.
+- Go to the AWS RDS Console and in the ```Connectivity``` section, choose it then click on ```inbound rules```
+- We will edit the inbound rules, add **TYpe** as PostgreSQL ,>  **Source** as Custom > Decsription as **GITPOD**
 
 - Copy the output and paste it as the ip address in the AWS inbound rules section.
 - Running ```psql $PROD_CONNECTION_URL``` in the terminal will now work.
