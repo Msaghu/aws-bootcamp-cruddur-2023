@@ -2,7 +2,13 @@
 
 ## Introduction
 
-**What is AWS RDS?**
+**What is AWS Relational Database Service(RDS)?**
+- Allows you to create and scale relational databases in the cloud.
+- RDS runs on virtual machines (can’t log in to the OS or SSH in).
+- AWS handles admin tasks for you like hardware provisioning, patching & backups.
+- RDS is not serverless — (one exception Aurora Serverless)
+- Allows you to control network access to your database
+- Offers encryption at rest — done with KMS (data stored, automated backups, read replicas and snapshots all encrypted)
 - AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
 - When create a database we need to be sure that it has been created in the same region where our account is.
 - You can create and modify a DB instance by using the AWS Command Line Interface (AWS CLI), the Amazon RDS API, or the AWS Management Console.
@@ -10,7 +16,7 @@
 - We can run our DB instance in several Availability Zones, an option called a Multi-AZ deployment. When we choose this option, Amazon automatically provisions and maintains one or more secondary standby DB instances in a different Availability Zone. Your primary DB instance is replicated across Availability Zones to each secondary DB instance.
 - We use security groups to control the access to a DB instance. It does so by allowing access to IP address ranges or Amazon EC2 instances that you specify.
 
-**DB engines**
+**Supported RDS DataBase engines**
 - A DB engine is the specific relational database software that runs on your DB instance. Amazon RDS currently supports the following engines:
 
 -MariaDB
@@ -98,13 +104,14 @@ aws rds create-db-instance \
   --no-deletion-protection
 ```
 
-### Step 3 - Temporarily stop an RDS instance
+### Step 3 - Temporarily stop the RDS instance
 - Switch over to the AWS Console and view the creation process of the database instance. 
 - When the database instance has been fully created, the status will read created.
-- Click into the Database instance and in the Actions tab Stop temporarily, it is stopped for 7 days (be sure to check on it after 7 days).
+- Click into the Database instance and in the Actions tab ***Stop temporarily***, it is stopped for 7 days (be sure to check on it after 7 days).
  
 ### Step 4 - Remotely connect to RDS instance
 #### Create a local Cruddur Database in PostgreSQL**
+- Since RDS runs on virtual machines, we can’t log in to the OS or SSH into the Database, therefore to be able to run commands and update the Database, we need to create a local instance and update it then push the changes upstream.
 - Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks)**.
 - Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, run the following commands:
 ```
@@ -116,10 +123,10 @@ psql -Upostgres --host localhost
 ```
 
 - Then to list existing databases run ```\l```
-- To create a new database called cruddur we will run
+- To create a new database called **cruddur** we will run
 ``` CREATE database cruddur; ```
 
-- As opposed to how we created the Database schema manually in our [https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig](Dev.to) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
+- As opposed to how we created the Database schema manually in our [Postgresql Databases blogpost](https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
 - We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**
 -Paste the following into the schema.sql, to create UUID( along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)
