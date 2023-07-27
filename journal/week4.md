@@ -103,6 +103,7 @@ aws rds create-db-instance \
   --performance-insights-retention-period 7 \
   --no-deletion-protection
 ```
+***(make sure to add a letter at the end of the region to make it an AZ i.e us-east-1 to us-east-1a)***
 
 ### Step 3 - Temporarily stop the RDS instance
 - Switch over to the AWS Console and view the creation process of the database instance. 
@@ -112,24 +113,54 @@ aws rds create-db-instance \
 ### Step 4 - Remotely connect to RDS instance
 #### Create a local Cruddur Database in PostgreSQL**
 - Since RDS runs on virtual machines, we can’t log in to the OS or SSH into the Database, therefore to be able to run commands and update the Database, we need to create a local instance and update it then push the changes upstream.
-- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks)**.
-- Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, run the following commands:
+- Start up Docker compose ***(docker compose up)***, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks i.e the snippet below)**.
+```
+  dynamodb-local:
+    # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
+    # We needed to add user:root to get this working.
+    user: root
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+```
+
+- Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, we need to install psql locally**(this means in our current Gitpod environment)**then run the following commands:
 ```
 sudo apt update
 sudo apt install -y postgresql-client-12 OR
 sudo apt install -y postgresql-client-13/14
 psql -Upostgres --host localhost
+psql -h hostname -p portNumber -U userName dbName -W
 (When it prompts for password enter: ***password***)
 ```
+- Where the parameters are explained below:
 
-- Then to list existing databases run ```\l```
+h — The host name of your DB instance (“localhost” if the DB is running on your local machine). If you’re attempting to connect to an RDS database, the host name will be the endpoint (URL) of the instance on which the database is running. This is found in the “Connectivity” panel of the specific database, under the “RDS” service on the Amazon Web Console.
+
+- Then to list existing databases in our RDS instance, we run
+```\l```
 - To create a new database called **cruddur** we will run
 ``` CREATE database cruddur; ```
 
 - As opposed to how we created the Database schema manually in our [Postgresql Databases blogpost](https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
-- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**
--Paste the following into the schema.sql, to create UUID( along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)
+- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**, [backend-flask/db/schema.sql](
+-Paste the following into the schema.sql, to create **UUID(along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)**
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
