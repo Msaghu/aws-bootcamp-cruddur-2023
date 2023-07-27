@@ -595,7 +595,7 @@ command: |
 # Implementing a Custom authorizer for Cognito
 ### STEP 10 - Cognito Post Confirmation Lambda
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
-- Create a new file in the aws folder named ```cruddur-post-confirmation``` and paste in:
+- Create a new file in the aws folder named [aws/cruddur-post-confirmation](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/lambdas/cruddur-post-confirmation) and paste in:
 
 ```
 import json
