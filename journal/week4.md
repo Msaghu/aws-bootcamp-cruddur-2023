@@ -589,7 +589,9 @@ command: |
       export GITPOD_IP=$(curl ifconfig.me)
       source  "$THEIA_WORKSPACE_ROOT/bin/rds/update-sg-rules"
 ```
+- Whenever we restart a new environment and run ```./bin/db-connect prod```, it will successfully connect(as long as RDS is on in the AWS console).
 
+  
 # Implementing a Custom authorizer for Cognito
 ### STEP 10 - Cognito Post Confirmation Lambda
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
