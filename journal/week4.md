@@ -50,15 +50,13 @@
 2. Temporarily stop an RDS instance
 3. Remotely connect to RDS instance
 4. Programmatically update a security group rule
-5. Write several bash scripts for database operations
-6. Operate common SQL commands
-7. Create a schema SQL file by hand
-8. Work with UUIDs and PSQL extensions
+5. Work with UUIDs and PSQL extensions and Create a schema SQL bash script file
+7. Write bash scripts for database operations
 9. Implement a postgres client for python using a connection pool
-10. Troubleshoot common SQL errors
-11. Implement a Lambda that runs in a VPC and commits code to RDS
-12. Work with PSQL json functions to directly return json from the database
-13. Correctly sanitize parameters passed to SQL to execute
+11. Troubleshoot common SQL errors
+12. Implement a Lambda that runs in a VPC and commits code to RDS
+13. Work with PSQL json functions to directly return json from the database
+14. Correctly sanitize parameters passed to SQL to execute
   
 # Spin up an PostgreSQL RDS(Relational Database System) 
 ### Step 1 - Provision an RDS instance via the AWS Console
@@ -109,10 +107,10 @@ aws rds create-db-instance \
 - Switch over to the AWS Console and view the creation process of the database instance. 
 - When the database instance has been fully created, the status will read created.
 - Click into the Database instance and in the Actions tab ***Stop temporarily***, it is stopped for 7 days (be sure to check on it after 7 days).
- 
+
+# Work with UUIDs and PSQL extensions and Create a schema SQL bash script file
 ### Step 4 - Remotely connect to RDS instance
-#### Create a local Cruddur Database in PostgreSQL**
-- Since RDS runs on virtual machines, we can’t log in to the OS or SSH into the Database, therefore to be able to run commands and update the Database, we need to create a local instance and update it then push the changes upstream.
+#### Create a local Cruddur Database in PostgreSQL
 - Start up Docker compose ***(docker compose up)***, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks i.e the snippet below)**.
 ```
   dynamodb-local:
@@ -157,22 +155,23 @@ h — The host name of your DB instance (“localhost” if the DB is running on
 - To create a new database called **cruddur** we will run
 ``` CREATE database cruddur; ```
 
+#### Create a Connection URL to the local Cruddur Database in PostgreSQL
 - As opposed to how we created the Database schema manually in our [Postgresql Databases blogpost](https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
-- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**, [backend-flask/db/schema.sql](
--Paste the following into the schema.sql, to create **UUID(along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)**
+- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**, [backend-flask/db/schema.sql](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/db/schema.sql)
+-Paste the following into the ```schema.sql```, to create **UUID(along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)**
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 
-***LONG METHOD (where we do not have to input the password each time)***
+***LONG METHOD (where we input the password each time)***
 - To create the extension located in the schema.sql file, change(cd) into backend-flask then run the following command(if prompted for password enter password):
 ```
 cd backend-flask/
 psql cruddur < db/schema.sql -h localhost -U postgres   =====> this will create an extension from schema.sql
 ```
 
-***SHORT METHOD (where we do not have to input the password each time)***
+***SHORT METHOD USING A CONNECTION URL STRING(where we do not have to input the password each time)***
 - To be able to get into our cruddur database(the short method). Run the following in the terminal(This will show that it works):
 ```
 psql postgresql://postgres:password@localhost:5432/cruddur 
@@ -180,7 +179,7 @@ OR
 psql postgresql://postgres:password@127.0.0.1:5432/cruddur
 ```
 
-***OR***
+***OR, Set it as an environment variable***
 
 - In the terminal, paste the following in the terminal(we should still be in backend-flask):
 ```
@@ -193,9 +192,10 @@ psql $CONNECTION_URL
 gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddur"
 ```
 
-### Step 4 - Bash Scripting
+# Write bash scripts for database operations
+### Step 5 - Bash Scripting
 - We will create 3 new files in backend-flask folder so that we can run bash scripts that enable us to quickly manage our databases; ```db-create, db-seed, db-drop, db-schema-load```
-- In the terminal run 
+- In the terminal run to get the path of bash in our environment and paste in as the first line of our files:
 ``` whereis bash```
 
 - Copy the path into all the three files above. Remember to create a shabang(#!) at the beginning of all the files that will indicate that they are bash files. The files will look like:
@@ -204,27 +204,18 @@ gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddu
 - Create the db-create file by pasting in ;
 ```
 #! /usr/bin/bash
-
 ```
 
-- To enable us to run the files as scripts, we need to be able to change their permissions so that they are executable, we can do this by running the following command on all the 3 files:
+- To enable us to run the files as scripts, we need to be able to change their permissions so that they are executable, we can do this by running the following command for all the 3 files:
 ```
 chmod u+x bin/db-create
 chmod u+x bin/db-drop
 chmod u+x bin/db-schema-load 
 ```
 
-- We can test that the db-drop script is working by running:
-``` ./bin/db-drop ```
-
-- As we can see the command above will give an error, because we are still in the cruddur database(remember the command we ran above?):
-```
-echo $CONNECTION_URL   (output)======>postgresql://postgres:password@127.0.0.1:5432/cruddur
-```
-
 **DB_DROP - A script to drop an existing database**
 
-- Therefore, if we want to get into psql with the command without going into our cruddur database, we will paste the following into our ```db-drop``` script:
+- Therefore, if we want to get into psql with the command without going into our cruddur database, we will paste the following into our ```/backend-flask/bin/db-drop``` script:
 ```
 #! /usr/bin/bash
 
@@ -234,10 +225,16 @@ NO_DB_CONNECTION_URL=$(sed 's/\/cruddur//g' <<< "$CONNECTION_URL")
 psql $NO_DB_CONNECTION_URL -c "DROP DATABASE cruddur;"
 ```
 
-- Then we can execute/run the sript by pasting into the terminal, to delete the cruddur database:
+- Then we can execute/run the script by pasting into the terminal, to delete the cruddur database:
 ```
 ./bin/db-drop
 ```
+
+***If we are still connected to the database we accessed above , we cannot drop it thus the command above will give an error, because we are still in the cruddur database(remember the command we ran above?):
+```
+echo $CONNECTION_URL   (output)======>postgresql://postgres:password@127.0.0.1:5432/cruddur
+```
+***
 
 **DB_CREATE - A shell to create a database**
 
@@ -260,8 +257,11 @@ psql $NO_DB_CONNECTION_URL -c "CREATE DATABASE cruddur;"
 #! /usr/bin/bash
 
 echo "db-schema-load" 
+schema_path ="$(real_path .)/db/schema.sql"
 
-psql $CONNECTION_URL cruddur < db/schema.sql
+echo $schema_path
+
+psql $CONNECTION_URL cruddur < $chema.sql
 ```
 
 - Run ```./bin/db-schema-load```
@@ -458,21 +458,22 @@ pool = ConnectionPool(connection_url)
 - Then pass it in ```home-activities.py```:
 ```from lib.db import pool```
 
-### STEP 9 - Connecting to the Cruddur Database
+### STEP 9 - Connecting to the Cruddur Database RDS instance
 - We will turn on our database via the AWS RDS console 
-- Then we will change our database password with within the console.
+- Then we will change our database password within the console.
 - In the terminal, run ```echo $PROD_CONNECTION_URL``` and copy the output provided.
 
-**Testing remote access**
-- Then to test remote access , we will paste the following command ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password that you reset  to above.
+**Testing remote access to the RDS instance**
+- Then to test remote access , we will paste the following command ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password of your choosing.
+- **@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com** os the RDS Endpoint port (get this value from the RDS console page of the cruddur database)
 ``` 
-postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur
+postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur
 ```
 
 - Then set it as an envrionment variable in the system by:
 ```
-export PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
-gp env PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
+export PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
+gp env PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
 ```
 
 - Test that you can connect to the database by running in the terminal:
