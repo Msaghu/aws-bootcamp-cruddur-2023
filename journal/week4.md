@@ -669,6 +669,33 @@ You can customize your users' experience by using Lambda functions to respond to
 - Then choose ```AWS/lambda/cruddur-post-confirmation``` tab and view the logs.
 - We will then set the VPC for the cruddur function in lambda otherwise when we try to sign up, it will always time out.
 
+**Create an IAM role for AWS Lambda**
+- Create an IAM role for AWS Lambda that will allow it to
+- In aws IAM console > Choose ***Roles*** > Choose create an ***In-line policy*** > Choose ***JSON*** > Add in the follwoing in the JSON section
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:us-east-1:vvvvvvvv:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:us-east-1:vvvvvv:log-group:/aws/lambda/cruddur-post-confirmation:*"
+            ]
+        }
+    ]
+}
+```
+
+
 **Create a VPC for the Lambda**
 - In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose the subnet that we placed our Postgres database > Choose the default security group that we created for postgres
 
