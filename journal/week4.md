@@ -678,27 +678,26 @@ You can customize your users' experience by using Lambda functions to respond to
     "Statement": [
         {
             "Effect": "Allow",
-            "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:us-east-1:vvvvvvvv:*"
-        },
-        {
-            "Effect": "Allow",
             "Action": [
+                "logs:CreateLogGroup",
                 "logs:CreateLogStream",
-                "logs:PutLogEvents"
+                "logs:PutLogEvents",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:AssignPrivateIpAddresses",
+                "ec2:UnassignPrivateIpAddresses"
             ],
-            "Resource": [
-                "arn:aws:logs:us-east-1:vvvvvv:log-group:/aws/lambda/cruddur-post-confirmation:*"
-            ]
+            "Resource": "*"
         }
     ]
 }
 ```
-
+- Attcah the role to the Lambda
 
 **Create a VPC for the Lambda**
-- In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose the subnet that we placed our Postgres database > Choose the default security group that we created for postgres
-
+- In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose 2 subnet that we placed our Postgres database > Choose the default security group that we created for postgres
+-***When we now access our production database(by running db-connect) we will now see the user we created in Cognito***
 
 **Errors encountered**
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
