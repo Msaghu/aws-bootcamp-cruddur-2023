@@ -592,14 +592,17 @@ command: |
 - Whenever we restart a new environment and run ```./bin/db-connect prod```, it will successfully connect(as long as RDS is on in the AWS console).
 
   
-# Implementing a Custom authorizer for Cognito
+# Implementing a Custom authorizer in AWS Lambda for Cognito users
 ### STEP 10 - Cognito Post Confirmation Lambda
+- We will be creating a Lambda function that will be triggered by AWS Cognito whenever a new user signs up to our application.
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
-- Create a new file in the aws folder named [aws/cruddur-post-confirmation](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/lambdas/cruddur-post-confirmation) and paste in:
+- Add ***Function name*** as ```cruddur-post-confirmation``` > Choose the ***Runtime*** as ```Python 3.8``` > Choose ***Architecture*** as ```x86_64``` > In Permissions, choose ***Create a new role with basic Lambda permissions***
+- Create a new file in the aws folder in GITPOD named [aws/lambdas/cruddur-post-confirmation](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/lambdas/cruddur-post-confirmation) and paste in:
 
 ```
 import json
 import psycopg2
+import os
 
 def lambda_handler(event, context):
     user = event['request']['userAttributes']
@@ -612,9 +615,7 @@ def lambda_handler(event, context):
     user_cognito_id     = user ['sub']
 
     try:
-        conn = psycopg2.connect(os.getenv('CONNECTION_URL'))
-        cur = conn.cursor()
-     
+    
         sql = f"""
           "INSERT INTO users (
             display_name, 
@@ -629,6 +630,8 @@ def lambda_handler(event, context):
              {user_cognito_id}
             )"
         """
+        conn = psycopg2.connect(os.getenv('CONNECTION_URL'))
+        cur = conn.cursor()
         cur.execute(sql)
         conn.commit() 
 
@@ -644,13 +647,13 @@ def lambda_handler(event, context):
     return event
 ```
 
-- In the Configuration tab in the Lambda function console, paste in the environment variable for the database:
+- In the Configuration tab in the Lambda function console > Choose ***Environment variables*** > Choose ***Edit*** and name it as ```CONNECTION_URL``` , then paste in the environment variable for the database after copying the output of the following command:
 
 ```
 env | grep PROD   ===> copy the ouptut and paste it into Lambda
 ```
 
-- Add a Layer in the Code tab.
+- Add a Layer in the Code tab > Choose ***Specify an ARN*** 
 - In the AWS Cognito console, trigger the Lambda function by clickin in the ```User pool properties``` tab then choose ```Add Lambda trigger```.
 ***(Add Lambda triggerInfo
 You can customize your users' experience by using Lambda functions to respond to authentication and authorization events. Use up to 10 different Lambda triggers to filter sign-ups and sign-ins, modify and import users, add custom authentication flows, and more. In addition, you can use Lambda function logging for deeper insight into trigger activity.)***
@@ -721,3 +724,4 @@ DELETE FROM table_name WHERE condition; -- Delete data from a table
 1. [AWS RDS CLI - Documentation](https://docs.aws.amazon.com/cli/latest/reference/rds/create-db-instance.html)
 2. [Postgres Connection RUL](https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url)
 3. [Postgres Python drivers session 3](https://www.tutorialspoint.com/postgresql/postgresql_python.htm#:~:text=The%20PostgreSQL%20can%20be%20integrated,and%20stable%20as%20a%20rock.)
+4. [Free AWS bootcamp Week 4 Youtube videos]() 
