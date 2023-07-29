@@ -594,6 +594,7 @@ command: |
   
 # Implementing a Custom authorizer in AWS Lambda for Cognito users
 ### STEP 10 - Cognito Post Confirmation Lambda
+- The Lambda function also directly inserts the users we have created into our production Postgres table whenever we connect to PROD.
 - We will be creating a Lambda function that will be triggered by AWS Cognito whenever a new user signs up to our application.
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
 - Add ***Function name*** as ```cruddur-post-confirmation``` > Choose the ***Runtime*** as ```Python 3.8``` > Choose ***Architecture*** as ```x86_64``` > In Permissions, choose ***Create a new role with basic Lambda permissions***
@@ -699,7 +700,29 @@ You can customize your users' experience by using Lambda functions to respond to
 - In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose 2 subnet that we placed our Postgres database > Choose the default security group that we created for postgres
 -***When we now access our production database(by running db-connect) we will now see the user we created in Cognito***
 
-**Errors encountered**
+### Creating activities into the Production Datatbase
+- We will add data into our application/create a crud in the application.
+- In the ```create_activity.py``` file, add the following code snippet:
+```
+        user_uuid = ""
+        sql = f"""
+          "INSERT INTO users (
+            user_uuid, 
+            message,
+            handle, 
+            cognito_user_id
+            )
+           VALUES(
+             "{user_uuid}", 
+             "{message}", 
+             {user_handle},
+             {user_cognito_id}
+            )"
+        """
+```
+
+
+#### Errors encountered
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
 ``` 
 == db-schema-load
@@ -711,8 +734,8 @@ psql: error: could not connect to server: No such file or directory
         connections on Unix domain socket "/var/run/postgresql/.s.PGSQL.5432"?
 ```
 
-### Security for Amazon RDS and Postgres
-**Security best practises - AWS**
+# Security for Amazon RDS and Postgres
+### Security best practises - AWS
 - Use VPCs: Use Amazon Virtual Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet. While creat9ing security groups, NEVER allow inbound traffic from the internet, but rather only from known IP adderesses.
 - Compliance standard is what the business requires.
 - RDS Instances should only be in the AWS region that you are legally allowed to be holding user data in.
@@ -720,7 +743,7 @@ psql: error: could not connect to server: No such file or directory
 - AWS CloudTrail is enabled and monitored to trigger alerts on malicious RDS behaviour by an identity in AWS.
 - Amazon Guard Duty is enabled in the account and region of RDS.
 
-**Security best practises - Application/Developer**
+### Security best practises - Application/Developer
 - RDS instance to use appropriate authentication - Use IAM authentication, kerberos 
 - Database User Lifecycle Management - Create, Modify, Delete Users
 - Security Group to be restricted only to known IPs
