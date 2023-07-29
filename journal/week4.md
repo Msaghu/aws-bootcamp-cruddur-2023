@@ -662,10 +662,16 @@ env | grep PROD   ===> copy the ouptut and paste it into Lambda
 ***(Add Lambda triggerInfo
 You can customize your users' experience by using Lambda functions to respond to authentication and authorization events. Use up to 10 different Lambda triggers to filter sign-ups and sign-ins, modify and import users, add custom authentication flows, and more. In addition, you can use Lambda function logging for deeper insight into trigger activity.)***
 
-- Go back to AWS Lambda console and refresh. Choose the **Monitor Tab** to make sure that the trigger works whenever a sign up is made, this will always be displayed via the logs. Choose the **logs** tab
+- Go back to AWS Lambda console and refresh. Choose the **Monitor Tab** to make sure that the trigger works whenever a sign up is made, this will always be displayed via the logs.
+- Test that the Lmbada/Cognito trigger works by creating a new user sign up from our application. It will share a code to our email! This NOW WORKS!
+- Choose the **logs** tab
 - This will redirect you to AWS CloudWatch, choose the log groups
 - Then choose ```AWS/lambda/cruddur-post-confirmation``` tab and view the logs.
 - We will then set the VPC for the cruddur function in lambda otherwise when we try to sign up, it will always time out.
+
+**Create a VPC for the Lambda**
+- In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose the subnet that we placed our Postgres database > Choose the default security group that we created for postgres
+
 
 **Errors encountered**
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
