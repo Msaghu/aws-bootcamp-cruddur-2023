@@ -653,16 +653,16 @@ def lambda_handler(event, context):
 env | grep PROD   ===> copy the ouptut and paste it into Lambda
 ```
 
-- Add a Layer in the Code tab > Choose ***Specify an ARN*** 
-- In the AWS Cognito console, trigger the Lambda function by clickin in the ```User pool properties``` tab then choose ```Add Lambda trigger```.
+- Add a Layer in the Code tab > Choose ***Specify an ARN*** > Paste in the following ```arn:aws:lambda:ca-central-1:898466741470:layer:psycopg2-py38:1```
+
+
+**Sync the Lambda with the Cognito**
+- In the AWS Cognito console, trigger the Lambda function by clickin in the ***User pool properties*** tab then choose ```Add Lambda trigger``` > Choose the ***Trigger type*** as ```Sign-up``` and ```Post-confirmation trigger``` > Choose Lambdafunction as the ```cruddur-post-confirmation``` > Choose ***Add Lambda trigger***
+- 
 ***(Add Lambda triggerInfo
 You can customize your users' experience by using Lambda functions to respond to authentication and authorization events. Use up to 10 different Lambda triggers to filter sign-ups and sign-ins, modify and import users, add custom authentication flows, and more. In addition, you can use Lambda function logging for deeper insight into trigger activity.)***
 
-- Choose the trigger type as **Sign up**
-- Choose **Post confirmation trigger**
-- Choose ```cruddur-post-confirmation```, which is the Lambda function created above and create the trigger.
 - Go back to AWS Lambda console and refresh. Choose the **Monitor Tab** to make sure that the trigger works whenever a sign up is made, this will always be displayed via the logs. Choose the **logs** tab
-
 - This will redirect you to AWS CloudWatch, choose the log groups
 - Then choose ```AWS/lambda/cruddur-post-confirmation``` tab and view the logs.
 - We will then set the VPC for the cruddur function in lambda otherwise when we try to sign up, it will always time out.
