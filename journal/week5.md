@@ -12,7 +12,7 @@ This week will be learning about NoSQl Databases and the different types that ex
 ### Why use NoSQL?
 - Application Development Productivity.
 - Large scale data
-- They mainatin perfomance no matter the scale of  
+- They maintain perfomance no matter the scale of queries/operations
 
 ### What are the characteristics of NoSQL databases?
 - A fast flexible NoSQL database
