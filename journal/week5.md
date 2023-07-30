@@ -375,7 +375,7 @@ AWS_COGNITO_USER_POOL_ID: "${AWS_COGNITO_USER_POOL_ID}"
 - DynamoDB Accelerator(DAX)
 - Cross Account
 
-**Security best Practises - AWS**
+## Security best Practises - AWS
 Amazon Dynamodb is part of an  account NOT a virtual Network
 - Use VPC endpoints: Use Amazon VPC to create a private network from our application or Lambda to a DynamoDB . This prevents unauthorized access to the instance from the public internet.
 - Data Security & Compliance: Compliance standard should be followed for the business requirements.
@@ -385,18 +385,18 @@ Amazon Dynamodb is part of an  account NOT a virtual Network
 - AWS Config rules is enabled in the account and region of DynamoDB.
 - Encryption at rest using KMS
 
-**Security best Practises - Application**
+## Security best Practises - Application
 AWS recommends using Client side encryption when storing sensitive information. But dynamoDB should not be used to store sensitive information, RDS databases should be used instead to store sensitive information for long periods.
 - DynamoDB to use appropriate Authentication - Use IAM Roles/ AWS Cognito Identity Pool (Avoid IAM Users/Groups).
 - DynamoDB User Lifecycle Management - Create, Modify, Delete Users.
 - AWS IAM roles instead of individual users to access and manage DynamoDB.
-- DAX Service9IAM) Role to have Read Only Access to DynamoDB.
+- DAX Service(IAM Role)to have Read Only Access to DynamoDB.
 - Not have DynamoDB be accessed from the internet(use VPC endpoints instead).
-- Site-to-Site VPN or Direct Connect for Onpremise and DynamoDB Access.
+- Site-to-Site VPN or Direct Connect for On-premise and DynamoDB Access.
 - Client side encryption is recommended by Amazon for DynamoDB.
 
-# Errors I have encountered so far and how i resolved them #
-## 1. While running ./bin/cognito/list-users ## 
+## Errors I have encountered so far and how i resolved them #
+#### 1. While running ./bin/cognito/list-users ## 
 ```Traceback (most recent call last):
   File "/workspace/aws-bootcamp-cruddur-2023/backend-flask/./bin/cognito/list-users", line 26, in <module>
     dict_users[handle['Value']] = sub['Value']
@@ -433,7 +433,7 @@ then once in the cruddur database, run the command above.
 When i tried running ```./bin/db/drop``` once again it worked.
 Thus i ran, ```./bin/db/setup```, then ./bin/cognito/list-users
 
-## 2. Messages for Londo will not update ##
+#### 2. Messages for Londo will not update
 - Incase we try updating messages for Londo, then we can manually update a dummy Cognito ID for him
 ```
 ./bin/db/connect
@@ -441,7 +441,7 @@ UPDATE public.users SET cognito_user_id = 'f73f4b05-a59e-468b-8a29-a1c39e7a2222'
 \q
 ```
 
-## 3. Getting -ve time values on our messages ##
+#### 3. Getting -ve time values on our messages
 While the messages would show in our application, they would show negative times thus meaning when we posted new messages they wouldn't be displayed on our timeline.
 A helpful bootcamper suggested editing this line in ```backend-flask/bin/ddb/seed```
 ```
