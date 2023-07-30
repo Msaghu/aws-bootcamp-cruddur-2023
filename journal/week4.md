@@ -532,7 +532,7 @@ psql $PROD_CONNECTION_URL
 
 - The first line will work but the second will hang until we add an inbound rule for the RDS instance Security Group.
 
-#### Edit the VPC inbound rules
+#### Edit the VPC Security Group inbound rules
 - Determine our Gitpod IP address by running in the terminal (run line 1) then set it as an environment variable using line 2:
 ```
 curl ifconfig.me
@@ -594,7 +594,7 @@ command: |
   
 # Implementing a Custom authorizer in AWS Lambda for Cognito users
 ### STEP 10 - Cognito Post Confirmation Lambda
-- The Lambda function also directly inserts the users we have created into our production Postgres table whenever we connect to PROD.
+- We will now create a Lambda function in the VPC we created above that will allow us to directly seed data and insert the users we have created into our production Postgres table whenever we connect to PROD.
 - We will be creating a Lambda function that will be triggered by AWS Cognito whenever a new user signs up to our application.
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
 - Add ***Function name*** as ```cruddur-post-confirmation``` > Choose the ***Runtime*** as ```Python 3.8``` > Choose ***Architecture*** as ```x86_64``` > In Permissions, choose ***Create a new role with basic Lambda permissions***
@@ -720,8 +720,10 @@ You can customize your users' experience by using Lambda functions to respond to
             )"
         """
 ```
-
-
+- In   ```db.py``` , Create a new class db that will call/initialize our connection pool
+- In home_activities.py add in the follwoing import statement:
+``` from lib.db import db```
+  
 #### Errors encountered
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
 ``` 
