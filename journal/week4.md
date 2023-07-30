@@ -416,8 +416,7 @@ source "$bin_path/db-seed"
 ```
 
 # Interact with the Postres database
-
-**To install the Python postgresql client**
+### To install the Python postgresql client
 - We will install the binaries by pasting the following into ```requirements.txt``
 ```
 psycopg[binary]
@@ -426,7 +425,7 @@ psycopg[pool]
 
 - Then running ```pip install -r requirements.txt``` in the terminal.
 
-**Database Connection pools**
+### Database Connection pools
 - We will now create a **connection pool**(connection pooling is the process of having a pool of active connections on the backend servers. These can be used any time a user sends a request. Instead of opening, maintaining, and closing a connection when a user sends a request, the server will assign an active connection to the user.)
 - Create a file called in lib called, ```db.py``` [backend-flask/lib/db.py]((https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/lib/db.py) and paste in:
 ```
