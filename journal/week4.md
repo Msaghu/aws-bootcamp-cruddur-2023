@@ -2,7 +2,10 @@
 
 ## Introduction
 
-**What is AWS Relational Database Service(RDS)?**
+## What is AWS Relational Database Service(RDS)?
+Amazon Relational Database Service (Amazon RDS) is a web service that makes it easier to set up, operate, and scale a relational database in the AWS Cloud. It provides cost-efficient, resizable capacity for an industry-standard relational database and manages common database administration tasks.
+
+### Why use AWS RDS?
 - Allows you to create and scale relational databases in the cloud.
 - RDS runs on virtual machines (can’t log in to the OS or SSH in).
 - AWS handles admin tasks for you like hardware provisioning, patching & backups.
@@ -722,7 +725,9 @@ You can customize your users' experience by using Lambda functions to respond to
 - In   ```db.py``` , Create a new class db that will call/initialize our connection pool
 - In home_activities.py add in the follwoing import statement:
 ``` from lib.db import db```
-  
+- Create files in [backend-flask/db/sql/activity](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/tree/main/backend-flask/db/sql/activities) to create , home and object sql.
+
+
 #### Errors encountered
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
 ``` 
