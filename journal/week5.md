@@ -51,12 +51,12 @@ This week will be learning about NoSQl Databases and the different types that ex
 3. For ***milli-second response times***, we add a Amazon DynamoDB Accelerator (DAX) to improve the response time of the DynamoDB tables that has been linked to the Web Application in AWS.
 
 ## Tasks
-- Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
-- Launch DynamoDB local
-- Seed our DynamoDB tables with data from ChatGPT
-- Write AWS SDK code for DynamoDB to query and scan put-item, for predefined endpoints
-- Create a production DynamoDB table
-- Update our backend app to use the production DynamoDB
+1. Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
+2. Launch DynamoDB local
+3. Seed our DynamoDB tables with data from ChatGPT
+4. Write AWS SDK code for DynamoDB to query and scan put-item, for predefined endpoints
+5. Create a production DynamoDB table
+6. Update our backend app to use the production DynamoDB
 
 # Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
 ### Step 1 - DynamoDB Data Modelling
