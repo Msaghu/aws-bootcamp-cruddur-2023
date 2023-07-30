@@ -15,9 +15,15 @@ This week will be learning about NoSQl Databases and the different types that ex
 - They mainatin perfomance no matter the scale of  
 
 ### What are the characteristics of NoSQL databases?
-- Non-relational
+- A fast flexible NoSQL database
+- Allows for storage of large text and binary, but there is a limit of 400KB item size
+- Delivers single digit millisecond latency at any scale
+- Fully managed serverless database — no servers to provision, patch, or manage.
+- Stored on SSD Storage
+- Spread across 3 geographically distinct datacenters
+- DynamoDB supports eventual consistent and strongly consistent reads. (eventual consistency is default)
+- **Streams** → time ordered sequence of item level modifications in a table (stored up to 24 hours)
 - Distributed system that can manage large scale data while maintaining high throughput and availability.
-- Scalable
 
 ### What are the differences between Non-Relational vs Relational Databases?
 | ---Non-Relational Databases---  | ---Relational Databases |
@@ -36,14 +42,23 @@ This week will be learning about NoSQl Databases and the different types that ex
 - Multi-model type
 
 ### Advantages of DynamoDB
-- Fast
-- Consistent perfomance
-- Easily Scalable 
+- Fully managed, multi-active & multi-region database
+- Replicate your DynamoDB tables across selected regions
+- Used for globally distributed apps
+- Based on DynamoDB streams
+- Can be used for Disaster Recovery or high availability
+- Fast and reliable when we perform data modelling
+
+### DynamoDB Accelerator (DAX)
+- Managed, highly available in memory cache for DynamoDB
+- Has up to 10 times performance improvement
+- Request time reduced to microseconds
+- DAX manages all in-memory acceleration, so you don’t need to mange things like cache invalidations
+- Compatible with Dynamo API calls
 
 ## Prerequisites
 1. Make sure that the following environment variables have been set so that we can securely reference them in our code without exposing important information
 - AWS REGION
-- 
 
 ## Business Use Cases for DynamoDB
 1. Will be used with our application for message caching
@@ -365,6 +380,7 @@ Amazon Dynamodb is part of an  account NOT a virtual Network
 - Amazon organizations SCP - to manage DynamoDB Table deletion, DynbamoDB creation, region lock.
 - AWS CloudTrail is enabled & monitored to trigger appropriate alerts on malicious DynamoDB behaviour by an identity in AWS.
 - AWS Config rules is enabled in the account and region of DynamoDB.
+- Encryption at rest using KMS
 
 **Security best Practises - Application**
 AWS recommends using Client side encryption when storing sensitive information. But dynamoDB should not be used to store sensitive information, RDS databases should be used instead to store sensitive information for long periods.
