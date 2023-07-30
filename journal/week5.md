@@ -75,14 +75,14 @@ This week will be learning about NoSQl Databases and the different types that ex
 
 # Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
 ### Step 1 - DynamoDB Data Modelling
-A flat table as we do not have joins as is the case with Relational databases.
-For this use case, we will use Single Table Design so that all the related data(the conversations) are stored in a single table design. This technique ensures that data is fetched very fast and reliably. Since similar items are stored in the same table, it reduces complexity in the application
+- A flat table as we do not have joins as is the case with Relational databases.
+- For this use case, we will use Single Table Design so that all the related data(all the access patterns/conversations) are stored in a single table, beacuse we have a relationship between the data. This technique ensures that data is fetched very fast and reliably. Since similar items are stored in the same table, it reduces complexity in the application.
 
 ### Access Patterns
-1. **PATTERN A - A single conversation within the DM** - Determines the habit that a user will most likely use i.e to view messages in the dms, sort messages in descending order and only for the messages with the 2 users.
-2. **Pattern B - List of Conversations(all dms)s** - Shows message groups so that users can see a list of all messages with other users i.e DMs.
-3. **Pattern C - Create a new message** - Creates a new message in a new message group. 
-4. **Pattern D - Update message for the last message group** - Creates a new message in an existing message group
+1. **PATTERN A - A single conversation within the DM** - Determines the habit that a user will most likely use i.e view messages in the dms, sort messages in descending order(latetst should be at the top) and only show for the messages with the 2 users.
+2. **Pattern B - List of Conversations(all dms)s** - Shows ALL message groups so that users can see a list of all messages with other users i.e DMs.
+3. **Pattern C - Create a new message** - Creates a new message in a new message group/New DM . 
+4. **Pattern D - Update message for the last message group** - Creates a new message in an existing message group.
 
 This means that our DynamoDB table needs the following code to differentiate the access patterns:
 ```
@@ -117,14 +117,17 @@ message = {
 }
 ```
 
-# Launch DynamoDB local
+# Launch DynamoDB locally in GITPOD environment
+## What is AWS BOTO3
+
+
 ### Step 2 - Start up DynamoDB locally
 - In the backend-flask directory, install Boto3(the AWS python SDK) in our backend by pasting line 2 into ```backend-flask/requirements.txt``` and running line 3 in the terminal :
 ``` 
 boto3
 pip install -r requirements.txt
 ```
-- Boto3 is the AWS SDK for Python that allows us to use Python in AWS tp create, configure and manage AWS.
+- Boto3 is the AWS SDK for Python that allows us to use Python in AWS to create, configure and manage AWS.
 - Run ```Docker-compose up``` to start up Dynamo-db local.
 - We will now create new folders in backend-flask to store the utility scripts: 
 - In the existing ```backend-flask/bin``` directory, create a new folder named ```/db``` and move all the scripts for the Postgres database only
@@ -135,9 +138,9 @@ pip install -r requirements.txt
 
 # Bash script changes for the Postgres database
 ### Step 3 -  Creating a new user in the Seed Bash Script
-- We will be creating a new user in the seed.sql as we are working with the users data queried from the local Postgres database named cruddur that we created in week 5.
-- Added a new user in the ```backend-flask/db/seed``` , make sure that the vaulues reflect you as one of the users, andrew as a test and the new user Londo
-- [backend-flask/db/seed](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/db/seed.sql)
+- We will be creating a **new user** in the ```seed.sql``` as we are working with the users data queried from the local Postgres database named ```cruddur``` that we created in week 4.
+- Added a new user in the ```backend-flask/db/seed``` , make sure that the vaulues reflect you as one of the users, andrew as a test and the **new user Londo**
+[backend-flask/db/seed](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/db/seed.sql)
 
 ### Step 4-  List existing users in Cognito
 - In week 4 we created users in AWS Cognito, we will now be using the same users in our application, however we need to make sure they exist, therefore the following script will show the created users from AWS Cognito.
