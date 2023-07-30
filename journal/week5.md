@@ -76,7 +76,7 @@ This week will be learning about NoSQl Databases and the different types that ex
 # Data modelling (Single Table Design) to determine relationships in our  DynamoDB table.
 ### Step 1 - DynamoDB Data Modelling
 - A flat table as we do not have joins as is the case with Relational databases.
-- For this use case, we will use Single Table Design so that all the related data(all the access patterns/conversations) are stored in a single table, beacuse we have a relationship between the data. This technique ensures that data is fetched very fast and reliably. Since similar items are stored in the same table, it reduces complexity in the application.
+- For this use case, we will use Single Table Design so that all the related data(all the access patterns/conversations) are stored in a single table, beacuse we have a relationship between the data. This technique ensures that data is fetched very fast and reliably. Since similar items are stored in the same table, it reduces complexity in the application and we dont have to manage multiple tables.
 
 ### Access Patterns
 1. **PATTERN A - A single conversation within the DM** - Determines the habit that a user will most likely use i.e view messages in the dms, sort messages in descending order(latetst should be at the top) and only show for the messages with the 2 users.
