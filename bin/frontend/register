@@ -1,0 +1,12 @@
+#! /usr/bin/bash
+set -e #stop if it fails at any point
+
+ABS_PATH=$(readlink -f "$0")
+BACKEND_PATH=$(dirname $ABS_PATH)
+BIN_PATH=$(dirname $BACKEND_PATH)
+PROJECT_PATH=$(dirname $BIN_PATH)
+AWS_TASK_PATH="$PROJECT_PATH/aws/task-definitions/frontend-react-js.json"
+
+echo $AWS_TASK_PATH
+
+aws ecs register-task-definition --cli-input-json "file://$AWS_TASK_PATH"
