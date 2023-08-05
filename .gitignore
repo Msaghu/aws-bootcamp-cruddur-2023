@@ -4,3 +4,6 @@ db.json
 .gitignore
 db.json
 dfdfd
+
+*.env
+gg*
