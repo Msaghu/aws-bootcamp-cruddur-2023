@@ -30,7 +30,7 @@ The `/journal` directory contains
 - [ ] [Week 4 - Attaching Database layer with AWS RDS Postgres](journal/week4.md)
 - [ ] [Week 5 - Implementing conversations with DynamoDB and Serverless Caching](journal/week5.md)
 - [ ] [Week 6 - Deploying Containers with ECS and Fargate](journal/week6.md)
-- [ ] [Week 7](journal/week7.md)
+- [ ] [Week 7 - Added logging to ECS containers with XRAY](journal/week7.md)
 - [ ] [Week 8](journal/week8.md)
 - [ ] [Week 9](journal/week9.md)
 - [ ] [Week 10](journal/week10.md)

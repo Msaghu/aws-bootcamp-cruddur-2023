@@ -2,7 +2,16 @@
 
 ## Introduction
 
-**What is AWS RDS?**
+## What is AWS Relational Database Service(RDS)?
+Amazon Relational Database Service (Amazon RDS) is a web service that makes it easier to set up, operate, and scale a relational database in the AWS Cloud. It provides cost-efficient, resizable capacity for an industry-standard relational database and manages common database administration tasks.
+
+### Why use AWS RDS?
+- Allows you to create and scale relational databases in the cloud.
+- RDS runs on virtual machines (can’t log in to the OS or SSH in).
+- AWS handles admin tasks for you like hardware provisioning, patching & backups.
+- RDS is not serverless — (one exception Aurora Serverless)
+- Allows you to control network access to your database
+- Offers encryption at rest — done with KMS (data stored, automated backups, read replicas and snapshots all encrypted)
 - AWS Aurora is the managed version of SQL databases that is fully managed by AWS.
 - When create a database we need to be sure that it has been created in the same region where our account is.
 - You can create and modify a DB instance by using the AWS Command Line Interface (AWS CLI), the Amazon RDS API, or the AWS Management Console.
@@ -10,7 +19,7 @@
 - We can run our DB instance in several Availability Zones, an option called a Multi-AZ deployment. When we choose this option, Amazon automatically provisions and maintains one or more secondary standby DB instances in a different Availability Zone. Your primary DB instance is replicated across Availability Zones to each secondary DB instance.
 - We use security groups to control the access to a DB instance. It does so by allowing access to IP address ranges or Amazon EC2 instances that you specify.
 
-**DB engines**
+**Supported RDS DataBase engines**
 - A DB engine is the specific relational database software that runs on your DB instance. Amazon RDS currently supports the following engines:
 
 -MariaDB
@@ -44,15 +53,13 @@
 2. Temporarily stop an RDS instance
 3. Remotely connect to RDS instance
 4. Programmatically update a security group rule
-5. Write several bash scripts for database operations
-6. Operate common SQL commands
-7. Create a schema SQL file by hand
-8. Work with UUIDs and PSQL extensions
+5. Work with UUIDs and PSQL extensions and Create a schema SQL bash script file
+7. Write bash scripts for database operations
 9. Implement a postgres client for python using a connection pool
-10. Troubleshoot common SQL errors
-11. Implement a Lambda that runs in a VPC and commits code to RDS
-12. Work with PSQL json functions to directly return json from the database
-13. Correctly sanitize parameters passed to SQL to execute
+11. Troubleshoot common SQL errors
+12. Implement a Lambda that runs in a VPC and commits code to RDS
+13. Work with PSQL json functions to directly return json from the database
+14. Correctly sanitize parameters passed to SQL to execute
   
 # Spin up an PostgreSQL RDS(Relational Database System) 
 ### Step 1 - Provision an RDS instance via the AWS Console
@@ -97,44 +104,77 @@ aws rds create-db-instance \
   --performance-insights-retention-period 7 \
   --no-deletion-protection
 ```
+***(make sure to add a letter at the end of the region to make it an AZ i.e us-east-1 to us-east-1a)***
 
-### Step 3 - Temporarily stop an RDS instance
+### Step 3 - Temporarily stop the RDS instance
 - Switch over to the AWS Console and view the creation process of the database instance. 
 - When the database instance has been fully created, the status will read created.
-- Click into the Database instance and in the Actions tab Stop temporarily, it is stopped for 7 days (be sure to check on it after 7 days).
- 
+- Click into the Database instance and in the Actions tab ***Stop temporarily***, it is stopped for 7 days (be sure to check on it after 7 days).
+
+# Work with UUIDs and PSQL extensions and Create a schema SQL bash script file
 ### Step 4 - Remotely connect to RDS instance
-#### Create a local Cruddur Database in PostgreSQL**
-- Start up Docker compose, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks)**.
-- Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, run the following commands:
+#### Create a local Cruddur Database in PostgreSQL
+- Start up Docker compose ***(docker compose up)***, then open the Docker extension and make sure that Postgres has started up,**(we added Postgres into the Docker-compose file in the earlier weeks i.e the snippet below)**.
+```
+  dynamodb-local:
+    # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
+    # We needed to add user:root to get this working.
+    user: root
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+```
+
+- Open the Postgres bash then, to be able to run psql commands inside the database instance we created above, we need to install psql locally**(this means in our current Gitpod environment)**then run the following commands:
 ```
 sudo apt update
 sudo apt install -y postgresql-client-12 OR
 sudo apt install -y postgresql-client-13/14
 psql -Upostgres --host localhost
+psql -h hostname -p portNumber -U userName dbName -W
 (When it prompts for password enter: ***password***)
 ```
+- Where the parameters are explained below:
 
-- Then to list existing databases run ```\l```
-- To create a new database called cruddur we will run
+h — The host name of your DB instance (“localhost” if the DB is running on your local machine). If you’re attempting to connect to an RDS database, the host name will be the endpoint (URL) of the instance on which the database is running. This is found in the “Connectivity” panel of the specific database, under the “RDS” service on the Amazon Web Console.
+
+- Then to list existing databases in our RDS instance, we run
+```\l```
+- To create a new database called **cruddur** we will run
 ``` CREATE database cruddur; ```
 
-- As opposed to how we created the Database schema manually in our [https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig](Dev.to) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
+#### Create a Connection URL to the local Cruddur Database in PostgreSQL
+- As opposed to how we created the Database schema manually in our [Postgresql Databases blogpost](https://dev.to/msaghu/free-aws-bootcamp-week-4-part-2-postgresql-databases-59ig) tutorial , here we will import it/use a schema made for us as we are using the AWS managed version of Postgres.
 - Since our Database will be used to store information, it will be useful in the backend.
-- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**
--Paste the following into the schema.sql, to create UUID( along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)
+- We will therefore create a new folder called **db** in the backend-flask folder, then we will create a file in the folder called **schema.sql**, [backend-flask/db/schema.sql](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/db/schema.sql)
+-Paste the following into the ```schema.sql```, to create **UUID(along random string that allows us to obscure items in our lists/db thus making it more secure than using a linear string)**
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 
-***LONG METHOD (where we do not have to input the password each time)***
+***LONG METHOD (where we input the password each time)***
 - To create the extension located in the schema.sql file, change(cd) into backend-flask then run the following command(if prompted for password enter password):
 ```
 cd backend-flask/
 psql cruddur < db/schema.sql -h localhost -U postgres   =====> this will create an extension from schema.sql
 ```
 
-***SHORT METHOD (where we do not have to input the password each time)***
+***SHORT METHOD USING A CONNECTION URL STRING(where we do not have to input the password each time)***
 - To be able to get into our cruddur database(the short method). Run the following in the terminal(This will show that it works):
 ```
 psql postgresql://postgres:password@localhost:5432/cruddur 
@@ -142,7 +182,7 @@ OR
 psql postgresql://postgres:password@127.0.0.1:5432/cruddur
 ```
 
-***OR***
+***OR, Set it as an environment variable***
 
 - In the terminal, paste the following in the terminal(we should still be in backend-flask):
 ```
@@ -155,9 +195,10 @@ psql $CONNECTION_URL
 gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddur"
 ```
 
-### Step 4 - Bash Scripting
+# Write bash scripts for database operations
+### Step 5 - Bash Scripting
 - We will create 3 new files in backend-flask folder so that we can run bash scripts that enable us to quickly manage our databases; ```db-create, db-seed, db-drop, db-schema-load```
-- In the terminal run 
+- In the terminal run to get the path of bash in our environment and paste in as the first line of our files:
 ``` whereis bash```
 
 - Copy the path into all the three files above. Remember to create a shabang(#!) at the beginning of all the files that will indicate that they are bash files. The files will look like:
@@ -166,27 +207,18 @@ gp env CONNECTION_URL="psql postgresql://postgres:password@127.0.0.1:5432/cruddu
 - Create the db-create file by pasting in ;
 ```
 #! /usr/bin/bash
-
 ```
 
-- To enable us to run the files as scripts, we need to be able to change their permissions so that they are executable, we can do this by running the following command on all the 3 files:
+- To enable us to run the files as scripts, we need to be able to change their permissions so that they are executable, we can do this by running the following command for all the 3 files:
 ```
 chmod u+x bin/db-create
 chmod u+x bin/db-drop
 chmod u+x bin/db-schema-load 
 ```
 
-- We can test that the db-drop script is working by running:
-``` ./bin/db-drop ```
-
-- As we can see the command above will give an error, because we are still in the cruddur database(remember the command we ran above?):
-```
-echo $CONNECTION_URL   (output)======>postgresql://postgres:password@127.0.0.1:5432/cruddur
-```
-
 **DB_DROP - A script to drop an existing database**
 
-- Therefore, if we want to get into psql with the command without going into our cruddur database, we will paste the following into our ```db-drop``` script:
+- Therefore, if we want to get into psql with the command without going into our cruddur database, we will paste the following into our ```/backend-flask/bin/db-drop``` script:
 ```
 #! /usr/bin/bash
 
@@ -196,10 +228,16 @@ NO_DB_CONNECTION_URL=$(sed 's/\/cruddur//g' <<< "$CONNECTION_URL")
 psql $NO_DB_CONNECTION_URL -c "DROP DATABASE cruddur;"
 ```
 
-- Then we can execute/run the sript by pasting into the terminal, to delete the cruddur database:
+- Then we can execute/run the script by pasting into the terminal, to delete the cruddur database:
 ```
 ./bin/db-drop
 ```
+
+***If we are still connected to the database we accessed above , we cannot drop it thus the command above will give an error, because we are still in the cruddur database(remember the command we ran above?):
+```
+echo $CONNECTION_URL   (output)======>postgresql://postgres:password@127.0.0.1:5432/cruddur
+```
+***
 
 **DB_CREATE - A shell to create a database**
 
@@ -222,8 +260,11 @@ psql $NO_DB_CONNECTION_URL -c "CREATE DATABASE cruddur;"
 #! /usr/bin/bash
 
 echo "db-schema-load" 
+schema_path ="$(real_path .)/db/schema.sql"
 
-psql $CONNECTION_URL cruddur < db/schema.sql
+echo $schema_path
+
+psql $CONNECTION_URL cruddur < $chema.sql
 ```
 
 - Run ```./bin/db-schema-load```
@@ -278,7 +319,6 @@ CREATE TABLE public.activities (
   created_at TIMESTAMP default current_timestamp NOT NULL
 );
 ```
-
 
 - The drop table lines will make sure that if there are any existing tables in the database, they are deleted first before the new tables are created.
 
@@ -378,22 +418,24 @@ source "$bin_path/db-schema-load"
 source "$bin_path/db-seed"
 ```
 
-**To install the Python postgresql client**
+# Interact with the Postres database
+### To install the Python postgresql client
 - We will install the binaries by pasting the following into ```requirements.txt``
 ```
 psycopg[binary]
 psycopg[pool]
 ```
 
-- Then running ```pip install requirements.txt``` in the terminal.
+- Then running ```pip install -r requirements.txt``` in the terminal.
 
-**Database Creation pool**
+### Database Connection pools
 - We will now create a **connection pool**(connection pooling is the process of having a pool of active connections on the backend servers. These can be used any time a user sends a request. Instead of opening, maintaining, and closing a connection when a user sends a request, the server will assign an active connection to the user.)
-- Create a file called in lib called, ```db.py``` (backend-flask/lib/db.py) and paste in:
+- Create a file called in lib called, ```db.py``` [backend-flask/lib/db.py]((https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/backend-flask/lib/db.py) and paste in:
 ```
 from psycopg_pool import ConnectionPool
 import os
 
+#lets postgres change sql to json
 def query_wrap_object(self, template):
   sql = f"""
   (SELECT COALESCE(row_to_json(object_row),'{{}}'::json) FROM (
@@ -402,6 +444,7 @@ def query_wrap_object(self, template):
   """
   return sql
 
+#lets postgres change sql to json
 def query_wrap_array(self, template):
   sql =  f"""
   (SELECT COALESCE(array_to_json(array_agg(row_to_json(array_row))),'[]'::json) FROM (
@@ -414,27 +457,72 @@ connection_url = os.getenv("CONNECTION_URL")
 pool = ConnectionPool(connection_url)
 ```
 
-- Then pass it in our docker-compose file by passing in the connection string:
-``` CONNECTION_URL: "${PROD_CONNECTION_URL}" ```
+- Then pass it in our ```docker-compose file``` by passing in the connection string, environment section:
+``` CONNECTION_URL: "${CONNECTION_URL}" ```
 
 - Then pass it in ```home-activities.py```:
 ```from lib.db import pool```
+and add in
+```
+sql = query_wrap_array("""
+SELECT * FROM activities
+""")
+with pool.connection() as conn:
+        with conn.cursor() as cur:
+          cur.execute(sql)
+          # this will return a tuple
+          # the first field being the data
+          json = cur.fetchall()
+      return json[0]
+```
 
-### STEP 9 - Connecting to the Cruddur Database
+- Then run ```docker compose up```
+- Check that the backend container is running
+- Remove the logging by X-Ray by commenting it out in ```app.py``` and in ```home-activities.py```
+***If we get the errors in the backend check that the connection url was passed into the container***
+- In ```home-activities.py``` paste in the follwoing code block:
+```
+results = db.query_array_json("""
+      SELECT
+        activities.uuid,
+        users.display_name,
+        users.handle,
+        activities.message,
+        activities.replies_count,
+        activities.reposts_count,
+        activities.likes_count,
+        activities.reply_to_activity_uuid,
+        activities.expires_at,
+        activities.created_at
+      FROM public.activities
+      LEFT JOIN public.users ON users.uuid = activities.user_uuid
+      ORDER BY activities.created_at DESC    
+    """)
+##    span.set_attributes("app.result_length", len(results))
+    return results
+```
+- Our frontend application via the tab should show a query as a post with the username
+
+  
+### STEP 9 - Connecting to the Cruddur Database Production RDS instance
 - We will turn on our database via the AWS RDS console 
-- Then we will change our database password with within the console.
+- Then we will change our database password within the console.
 - In the terminal, run ```echo $PROD_CONNECTION_URL``` and copy the output provided.
 
-**Testing remote access**
-- Then to test remote access , we will paste the following command ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password that you reset  to above.
+#### Testing remote access to the RDS instance
+- Then to test remote access , we will paste the command below ***(this is the output from echo $PROD_CONNECTION_URL)*** in the terminal then, change the passwordpassword item to the password of your choosing.
+***@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com is the RDS Endpoint port (get this value from the RDS console page of the cruddur database)***
 ``` 
-postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur
+postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur
 ```
 
 - Then set it as an envrionment variable in the system by:
 ```
-export PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
-gp env PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
+export PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
+
+gp env PROD_CONNECTION_URL="postgresql://cruddurroot:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5432/cruddur"
+
+env | grep PROD 
 ```
 
 - Test that you can connect to the database by running in the terminal:
@@ -444,24 +532,26 @@ then
 psql $PROD_CONNECTION_URL
 ```
 
-- The first line will work but the second will hang.
+- The first line will work but the second will hang until we add an inbound rule for the RDS instance Security Group.
 
-**Edit the VPC inbound rules***
-- To enable it, we need to edit the inbound rules for the RDS VPC.
-- Go to the AWS Console and in the ```Connectivity``` section, choose it then click on ```inbound rules```
+#### Edit the VPC Security Group inbound rules
 - Determine our Gitpod IP address by running in the terminal (run line 1) then set it as an environment variable using line 2:
 ```
 curl ifconfig.me
-GITPOD_IP=$(curl ifconfig.me)
+export GITPOD_IP=$(curl ifconfig.me)
+echo $GITPOD_IP
 ```
-
 - Copy the output and paste it as the ip address in the AWS inbound rules section.
+- To enable it, we need to edit the inbound rules for the RDS VPC.
+- Go to the AWS RDS Console and in the ```Connectivity``` section, choose it then click on ```inbound rules```
+- We will edit the inbound rules, add **TYpe** as PostgreSQL ,>  **Source** as Custom and add the IP as the value of ***echo $GITPOD_IP***> Decsription as **GITPOD**
+
 - Running ```psql $PROD_CONNECTION_URL``` in the terminal will now work.
 ***Incase you are still unable to access the database using $PROD_CONNECTION_URL, try changing the following $PROD_CONNECTION_URL variable(instead of cruddurroot, we use root)
 export PROD_CONNECTION_URL="postgresql://root:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"
 gp env PROD_CONNECTION_URL="postgresql://root:passwordpassword@cruddur-db-instance.czz1cuvepklc.ca-central-1.rds.amazonaws.com:5433/cruddur"***
 
-**Permanently setting the GITPOD.IO variables**
+#### Permanently setting the GITPOD.IO variables for the Security group
 - Change the values with the appropriate vaules of the ```security group id``` and ```security group rule id```, which you will get from the AWS Console for the Security group that was created above.
 - Paste the following into the terminal to set:
 ```
@@ -472,23 +562,50 @@ export DB_SG_RULE_ID="sgr-76cgcgvbvbnvnvnvnn"
 gp env DB_SG_RULE_ID="sgr-76cgcgvbvbnvnvnvnn"
 ```
 
-- Create an inbound rule that allows internet from evrywhere, 0.0.0.0/0 and test it by running the code below:
+- Create an inbound rule that allows internet from evrywhere, 0.0.0.0/0 and test that it is changed when we run the code below:
 ```
 aws ec2 modify-security-group-rules \
     --group-id $DB_SG_ID \
     --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$GITPOD_IP/32}"
 ```
+***For $DB_SG_ID-copy the Security Group ID from the Security group we created above,
+For $DB_SG_RULE_ID-copy the Security Group Rule ID for the rule that allows the traffic from our GITPO/environment IP address***
+- To make sure that this Security group is always updated, we will create a bash script from the code abive to always update its IP whenever we spin up a new Gitpod environment.
+- Create a script in [bin/rds-update-sg-rule](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/tree/main/bin/rds):
+```
+#! /usr/bin/bash
 
+CYAN='\033[1;36m'
+NO_COLOR='\033[0m'
+LABEL="rds-update-sg-rules"
+printf "${CYAN}== ${LABEL}${NO_COLOR}\n"
 
+aws ec2 modify-security-group-rules \
+    --group-id $DB_SG_ID \
+    --security-group-rules "SecurityGroupRuleId=$DB_SG_RULE_ID,SecurityGroupRule={Description=GITPOD,IpProtocol=tcp,FromPort=5432,ToPort=5432,CidrIpv4=$GITPOD_IP/32}"
+```
+-Change its permissions to make its executable
+- In ```Gitpod.yml``` add the bash script so that it runs everytime we start up the environment:
+```
+command: |
+      export GITPOD_IP=$(curl ifconfig.me)
+      source  "$THEIA_WORKSPACE_ROOT/bin/rds/update-sg-rules"
+```
+- Whenever we restart a new environment and run ```./bin/db-connect prod```, it will successfully connect(as long as RDS is on in the AWS console).
 
-### Implementing a Custom authorizer for Cognito
-***STEP 10 - Cognito Post Confirmation Lambda***
+  
+# Implementing a Custom authorizer in AWS Lambda for Cognito users
+### STEP 10 - Cognito Post Confirmation Lambda
+- We will now create a Lambda function in the VPC we created above that will allow us to directly seed data and insert the users we have created into our production Postgres table whenever we connect to PROD.
+- We will be creating a Lambda function that will be triggered by AWS Cognito whenever a new user signs up to our application.
 - Created a Lambda in the AWS LAMBDA console called ```cruddur-post-confirmation```
-- Create a new file in the aws folder named ```cruddur-post-confirmation``` and paste in:
+- Add ***Function name*** as ```cruddur-post-confirmation``` > Choose the ***Runtime*** as ```Python 3.8``` > Choose ***Architecture*** as ```x86_64``` > In Permissions, choose ***Create a new role with basic Lambda permissions***
+- Create a new file in the aws folder in GITPOD named [aws/lambdas/cruddur-post-confirmation](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/blob/main/aws/lambdas/cruddur-post-confirmation) and paste in:
 
 ```
 import json
 import psycopg2
+import os
 
 def lambda_handler(event, context):
     user = event['request']['userAttributes']
@@ -501,9 +618,7 @@ def lambda_handler(event, context):
     user_cognito_id     = user ['sub']
 
     try:
-        conn = psycopg2.connect(os.getenv('CONNECTION_URL'))
-        cur = conn.cursor()
-     
+    
         sql = f"""
           "INSERT INTO users (
             display_name, 
@@ -518,6 +633,8 @@ def lambda_handler(event, context):
              {user_cognito_id}
             )"
         """
+        conn = psycopg2.connect(os.getenv('CONNECTION_URL'))
+        cur = conn.cursor()
         cur.execute(sql)
         conn.commit() 
 
@@ -533,32 +650,85 @@ def lambda_handler(event, context):
     return event
 ```
 
-- In the Configuration tab in the Lambda function console, paste in the environment variable for the database:
+- In the Configuration tab in the Lambda function console > Choose ***Environment variables*** > Choose ***Edit*** and name it as ```CONNECTION_URL``` , then paste in the environment variable for the database after copying the output of the following command:
 
 ```
 env | grep PROD   ===> copy the ouptut and paste it into Lambda
 ```
 
-- Add a Layer in the Code tab.
-- In the AWS Cognito console, trigger the Lambda function by clickin in the ```User pool properties``` tab then choose ```Add Lambda trigger```.
+- Add a Layer in the Code tab > Choose ***Specify an ARN*** > Paste in the following ```arn:aws:lambda:ca-central-1:898466741470:layer:psycopg2-py38:1```
+
+
+**Sync the Lambda with the Cognito**
+- In the AWS Cognito console, trigger the Lambda function by clickin in the ***User pool properties*** tab then choose ```Add Lambda trigger``` > Choose the ***Trigger type*** as ```Sign-up``` and ```Post-confirmation trigger``` > Choose Lambdafunction as the ```cruddur-post-confirmation``` > Choose ***Add Lambda trigger***
+- 
 ***(Add Lambda triggerInfo
 You can customize your users' experience by using Lambda functions to respond to authentication and authorization events. Use up to 10 different Lambda triggers to filter sign-ups and sign-ins, modify and import users, add custom authentication flows, and more. In addition, you can use Lambda function logging for deeper insight into trigger activity.)***
 
-- Choose the trigger type as **Sign up**
-- Choose **Post confirmation trigger**
-- Choose ```cruddur-post-confirmation```, which is the Lambda function created above and create the trigger.
-- Go back to AWS Lambda console and refresh. Choose the **Monitor Tab** to make sure that the trigger works whenever a sign up is made, this will always be displayed via the logs. Choose the **logs** tab
-
+- Go back to AWS Lambda console and refresh. Choose the **Monitor Tab** to make sure that the trigger works whenever a sign up is made, this will always be displayed via the logs.
+- Test that the Lmbada/Cognito trigger works by creating a new user sign up from our application. It will share a code to our email! This NOW WORKS!
+- Choose the **logs** tab
 - This will redirect you to AWS CloudWatch, choose the log groups
 - Then choose ```AWS/lambda/cruddur-post-confirmation``` tab and view the logs.
 - We will then set the VPC for the cruddur function in lambda otherwise when we try to sign up, it will always time out.
-- 
+
+**Create an IAM role for AWS Lambda**
+- Create an IAM role for AWS Lambda that will allow it to
+- In aws IAM console > Choose ***Roles*** > Choose create an ***In-line policy*** > Choose ***JSON*** > Add in the follwoing in the JSON section
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "ec2:CreateNetworkInterface",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DeleteNetworkInterface",
+                "ec2:AssignPrivateIpAddresses",
+                "ec2:UnassignPrivateIpAddresses"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+- Attcah the role to the Lambda
+
+**Create a VPC for the Lambda**
+- In the AWS Lambda console for the ```cruddur-post-confirmation```, choose ***configuration***  > Choose ***Edit*** > Choose the VPC (this is the default VPC created for us by AWS) > Choose 2 subnet that we placed our Postgres database > Choose the default security group that we created for postgres
+-***When we now access our production database(by running db-connect) we will now see the user we created in Cognito***
+
+### Creating activities into the Production Datatbase
+- We will add data into our application/create a crud in the application.
+- In the ```create_activity.py``` file, add the following code snippet:
+```
+        user_uuid = ""
+        sql = f"""
+          "INSERT INTO users (
+            user_uuid, 
+            message,
+            handle, 
+            cognito_user_id
+            )
+           VALUES(
+             "{user_uuid}", 
+             "{message}", 
+             {user_handle},
+             {user_cognito_id}
+            )"
+        """
+```
+- In   ```db.py``` , Create a new class db that will call/initialize our connection pool
+- In home_activities.py add in the follwoing import statement:
+``` from lib.db import db```
+- Create files in [backend-flask/db/sql/activity](https://github.com/Msaghu/aws-bootcamp-cruddur-2023/tree/main/backend-flask/db/sql/activities) to create , home and object sql.
 
 
-
-
-
-**Errors encountered**
+#### Errors encountered
 - When running ./bin/db-schema-load this was the error that I was encountering(i had begun video 2? the next day):
 ``` 
 == db-schema-load
@@ -570,8 +740,8 @@ psql: error: could not connect to server: No such file or directory
         connections on Unix domain socket "/var/run/postgresql/.s.PGSQL.5432"?
 ```
 
-### Security for Amazon RDS and Postgres
-**Security best practises - AWS**
+# Security for Amazon RDS and Postgres
+### Security best practises - AWS
 - Use VPCs: Use Amazon Virtual Private Cloud to create a private netwrok for your RDS instance. This helps prevent unauthorized access to your instance from the public internet. While creat9ing security groups, NEVER allow inbound traffic from the internet, but rather only from known IP adderesses.
 - Compliance standard is what the business requires.
 - RDS Instances should only be in the AWS region that you are legally allowed to be holding user data in.
@@ -579,7 +749,7 @@ psql: error: could not connect to server: No such file or directory
 - AWS CloudTrail is enabled and monitored to trigger alerts on malicious RDS behaviour by an identity in AWS.
 - Amazon Guard Duty is enabled in the account and region of RDS.
 
-**Security best practises - Application/Developer**
+### Security best practises - Application/Developer
 - RDS instance to use appropriate authentication - Use IAM authentication, kerberos 
 - Database User Lifecycle Management - Create, Modify, Delete Users
 - Security Group to be restricted only to known IPs
@@ -615,3 +785,4 @@ DELETE FROM table_name WHERE condition; -- Delete data from a table
 1. [AWS RDS CLI - Documentation](https://docs.aws.amazon.com/cli/latest/reference/rds/create-db-instance.html)
 2. [Postgres Connection RUL](https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url)
 3. [Postgres Python drivers session 3](https://www.tutorialspoint.com/postgresql/postgresql_python.htm#:~:text=The%20PostgreSQL%20can%20be%20integrated,and%20stable%20as%20a%20rock.)
+4. [Free AWS bootcamp Week 4 Youtube videos]() 
