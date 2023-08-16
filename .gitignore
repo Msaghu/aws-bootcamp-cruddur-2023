@@ -7,3 +7,7 @@ dfdfd
 
 *.env
 gg*
+node_modules
+thumbing-serverless-cdk/cdk.out/.cache/1ebc9d3ac2033816c4abb63e4afd69d350b4aba8704cc9236b82ea520b74f4b0.zip
+thumbing-serverless-cdk/cdk.out/.cache/4f940648e48aaf282ebec6172a6e448d3d4c1dfbd5e4125792a988aaab496879.zip
+thumbing-serverless-cdk/cdk.out/.cache*
